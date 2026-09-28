@@ -1,0 +1,587 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Viecoi API Split</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    --paper: #eef2f1;
+    --paper-raised: #ffffff;
+    --ink: #182225;
+    --ink-soft: #4b5a5c;
+    --line: #c9d3d1;
+    --line-soft: #dbe3e1;
+
+    --teal: #2d6a68;
+    --teal-soft: #dceae8;
+    --amber: #a5751f;
+    --amber-soft: #f3e6cd;
+    --risk: #a4402f;
+    --risk-soft: #f5ded8;
+    --good: #4c6b3f;
+    --good-soft: #e2ead9;
+
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #12181a;
+      --paper-raised: #182022;
+      --ink: #e9eeec;
+      --ink-soft: #a9b6b5;
+      --line: #2c3a3b;
+      --line-soft: #22302f;
+
+      --teal: #6db3af;
+      --teal-soft: #1c3230;
+      --amber: #d3a75c;
+      --amber-soft: #362a16;
+      --risk: #e0836f;
+      --risk-soft: #3a2420;
+      --good: #93b47f;
+      --good-soft: #232f1e;
+    }
+  }
+
+  :root[data-theme="dark"]{
+    --paper: #12181a;
+    --paper-raised: #182022;
+    --ink: #e9eeec;
+    --ink-soft: #a9b6b5;
+    --line: #2c3a3b;
+    --line-soft: #22302f;
+
+    --teal: #6db3af;
+    --teal-soft: #1c3230;
+    --amber: #d3a75c;
+    --amber-soft: #362a16;
+    --risk: #e0836f;
+    --risk-soft: #3a2420;
+    --good: #93b47f;
+    --good-soft: #232f1e;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-font-smoothing: antialiased; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+  }
+
+  .page{
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4.5rem 1.75rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  .head{ display: flex; flex-direction: column; gap: 0.9rem; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 0.55rem; height: 0.55rem;
+    border-radius: 1px;
+    background: var(--teal);
+    transform: rotate(45deg);
+    flex: none;
+  }
+  h1{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 4.4vw, 2.6rem);
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek{
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 34rem;
+    margin: 0;
+  }
+  .meta-row{
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .meta-row span b{ color: var(--ink); font-weight: 500; }
+
+  section{ display: flex; flex-direction: column; gap: 1.1rem; }
+  .section-title{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.32rem;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .section-note{
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 40rem;
+  }
+
+  .scope{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper-raised);
+  }
+  .scope-col{
+    padding: 1.5rem 1.5rem 1.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .scope-col + .scope-col{ border-left: 1px solid var(--line); }
+  .scope-tag{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    width: fit-content;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+  }
+  .tag-teal{ background: var(--teal-soft); color: var(--teal); }
+  .tag-amber{ background: var(--amber-soft); color: var(--amber); }
+  .scope-col h3{
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+  }
+  .scope-col ul{
+    margin: 0; padding: 0;
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0.55rem;
+    font-size: 0.94rem;
+  }
+  .scope-col li{ padding-left: 1rem; position: relative; }
+  .scope-col li::before{
+    content: "–";
+    position: absolute; left: 0; color: var(--ink-soft);
+  }
+  .seam{
+    grid-column: 1 / -1;
+    padding: 0.7rem 1.5rem;
+    background: var(--line-soft);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .seam::before{ content: "⌁"; color: var(--risk); font-size: 0.9rem; }
+
+  .stats{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat{
+    background: var(--paper-raised);
+    padding: 1.2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .stat .n{
+    font-family: var(--serif);
+    font-size: 1.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat .n.good{ color: var(--good); }
+  .stat .n.risk{ color: var(--risk); }
+  .stat .l{
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+
+  .risk-block{
+    border: 1px solid color-mix(in srgb, var(--risk) 35%, var(--line));
+    background: var(--risk-soft);
+    border-radius: 6px;
+    padding: 1.5rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .risk-block .section-title{ color: var(--risk); font-size: 1.15rem; }
+  .risk-block p{ margin: 0; font-size: 0.96rem; }
+  .risk-block code{
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--paper-raised);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--line-soft);
+  }
+
+  .options{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .opt{
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    padding: 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .opt-head{ display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+  .opt-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0;
+  }
+  .opt-head .who{
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .opt p{ margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+  .opt .catch{
+    font-size: 0.86rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .opt .catch::before{ content: "!"; font-family: var(--mono); color: var(--risk); font-weight: 500; }
+
+  .rec{
+    border-left: 3px solid var(--teal);
+    padding: 0.2rem 0 0.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rec .section-title{ font-size: 1.1rem; }
+  .rec p{ margin: 0; font-size: 0.97rem; }
+
+  .steps{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .step{
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: flex-start;
+  }
+  .step .box{
+    flex: none;
+    width: 1.05rem; height: 1.05rem;
+    margin-top: 0.15rem;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 3px;
+  }
+  .step .tx{ font-size: 0.95rem; }
+  .step .tx b{ font-weight: 600; }
+  .step .tag{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .task-group{
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+  }
+  .task-head{ display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+  .task-num{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+    flex: none;
+  }
+  .task-num.t1{ background: var(--amber-soft); color: var(--amber); }
+  .task-num.t2{ background: var(--risk-soft); color: var(--risk); }
+  .task-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.08rem;
+    margin: 0;
+  }
+  .task-group .steps{ border-top: 1px solid var(--line-soft); }
+  .envs{
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+  .envs b{ color: var(--ink); font-weight: 500; }
+  .note-inline{
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0.15rem 0 0;
+  }
+  .must{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    color: var(--risk);
+    border: 1px solid color-mix(in srgb, var(--risk) 45%, var(--line));
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+
+  footer{
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  @media (max-width: 620px){
+    .scope{ grid-template-columns: 1fr; }
+    .scope-col + .scope-col{ border-left: none; border-top: 1px solid var(--line); }
+    .stats{ grid-template-columns: repeat(2, 1fr); }
+    .options{ grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .page{ animation: rise 0.5s ease-out; }
+    @keyframes rise{ from{ opacity: 0; transform: translateY(6px); } to{ opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="page">
+
+  <div class="head">
+    <div class="eyebrow">Architecture note · for team review</div>
+    <h1>Splitting Viecoi into two repositories by business scope</h1>
+    <p class="dek">Instead of continuing to port V3 work commit-by-commit from <code style="font-family:var(--mono)">develop</code> into <code style="font-family:var(--mono)">master</code>, we stop merging and let the two branches become two repositories, divided along the responsibilities they already have in practice. Named <code style="font-family:var(--mono)">viecoi-v3-api</code> rather than <code style="font-family:var(--mono)">viecoi-api</code> on purpose — if a future V4 rewrite is ever needed, it forks from this repo instead of starting over.</p>
+    <div class="meta-row">
+      <span>Repos: <b>viecoi</b> · <b>viecoi-v3-api</b></span>
+      <span>Shared substrate: <b>one MySQL database</b></span>
+      <span>Status: <b>approved — execution starting</b></span>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">The scope split</h2>
+    <p class="section-note">Each repo owns a distinct slice of product surface. Nothing here is aspirational — it's how the two branches already behave today.</p>
+    <div class="scope">
+      <div class="scope-col">
+        <span class="scope-tag tag-teal">Source of truth</span>
+        <h3>viecoi</h3>
+        <ul>
+          <li>All database migrations — the single schema authority</li>
+          <li>Cron jobs</li>
+          <li>V2 APIs for Employer features</li>
+          <li>Employer-facing React webapp pages</li>
+          <li>Continues to use the existing, established service layer</li>
+        </ul>
+      </div>
+      <div class="scope-col">
+        <span class="scope-tag tag-amber">New surface</span>
+        <h3>viecoi-v3-api</h3>
+        <ul>
+          <li>V3 APIs only</li>
+          <li>Renders Guest and Jobseeker-facing pages exclusively</li>
+          <li>Services are written fresh — no reuse of viecoi's existing service layer</li>
+          <li>Exception, by necessity: Auth, session and layout-shell bootstrapping stay shared</li>
+        </ul>
+      </div>
+      <div class="seam">reads and writes against the same physical database — no separate schema, no read replica</div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">What the code confirms</h2>
+    <p class="section-note">Measured directly against the two branches, tracing every service class the 18 V3 controllers actually import — not an estimate.</p>
+    <div class="stats">
+      <div class="stat">
+        <span class="n good">74%</span>
+        <span class="l">of V3's 65 imported service classes exist only on <b style="font-family:var(--mono);font-weight:500;color:var(--ink)">develop</b> — genuinely new, not reused</span>
+      </div>
+      <div class="stat">
+        <span class="n">26%</span>
+        <span class="l">are shared on purpose — Auth, session, and layout-shell bootstrapping present on both sides</span>
+      </div>
+      <div class="stat">
+        <span class="n risk">55%</span>
+        <span class="l">of V3 services skip Eloquent entirely and query physical tables with raw <span style="font-family:var(--mono)">DB::table()</span> SQL</span>
+      </div>
+      <div class="stat">
+        <span class="n">13</span>
+        <span class="l">Eloquent models actually shared — small, low-churn reference and identity tables</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="risk-block">
+      <h3 class="section-title">The residual risk: schema, not services</h3>
+      <p>The "no reused services" rule holds up in the code. But it doesn't remove the coupling — it just moves it one layer down, to the database itself. Because <code>viecoi-v3-api</code> reads the same physical tables as <code>viecoi</code>, and over half of it does so through raw SQL rather than Eloquent, a column rename or drop in a <code>viecoi</code> migration can break a <code>viecoi-v3-api</code> page with <strong>no compiler error, no shared class, and no test in either repo</strong> to catch it.</p>
+      <p>The 13 shared models are a minor, containable risk. The raw-SQL dependency on table and column names is the real one — it's the least visible failure mode of the two.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Why a guardrail, not just a process rule</h2>
+    <p class="section-note">Both raise the odds someone notices the impact before it ships, but only one scales past whoever happens to remember. That's why Task 2 leads with the guardrail rather than the process rule alone.</p>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-head">
+          <h3>Manual review</h3>
+          <span class="who">process</span>
+        </div>
+        <p>Whoever implements a <code style="font-family:var(--mono);font-size:0.9em">viecoi</code> migration ticket is responsible for checking its effect on <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code> before merging.</p>
+        <div class="catch">Relies on memory, and on that developer thinking to open a second, separate repository at all.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-head">
+          <h3>AI guardrail</h3>
+          <span class="who">CLAUDE.md / AGENTS.md</span>
+        </div>
+        <p>Repository instructions tell an AI coding assistant to cross-check <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code>'s raw-SQL dependencies whenever it touches a migration in <code style="font-family:var(--mono);font-size:0.9em">viecoi</code>.</p>
+        <div class="catch">Only fires when the change is made through the assistant — silent for anyone who isn't.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rec">
+      <h3 class="section-title">The gate Task 2 still needs to close</h3>
+      <p>The guardrail plus the new test suite only bites if something actually runs those tests against <code style="font-family:var(--mono);font-size:0.9em">viecoi</code>'s <em>proposed</em> schema before a migration merges — not after. Mocked tests won't do this: they'd stay green regardless of drift. The tests need to hit a real, currently-migrated database, and <code style="font-family:var(--mono);font-size:0.9em">viecoi</code>'s own pipeline needs to be the one triggering <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code>'s suite against that schema as a required check — otherwise this is detection after the fact, not prevention.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Execution plan</h2>
+    <p class="section-note">Two work-streams, ready to start.</p>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t1">Task 1</span>
+        <h3>Stand up the official source, correctly scoped</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Rename</span><br>Switch <code style="font-family:var(--mono)">develop</code> into its own repository: <b>viecoi-v3-api</b>.</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Trim</span><br><b>Scan the new repository and remove everything outside the V3 API surface</b> — controllers, console commands, and anything else that isn't part of what <code style="font-family:var(--mono)">viecoi-v3-api</code> actually owns.</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Provision</span><br><b>Configure git and nginx on both environments.</b>
+            <div class="envs">
+              <span><b>wct-1</b> — main environment</span>
+              <span><b>wct-2</b> — staging environment</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Domain</span><br><b>Configure the V3 API backend domain per environment.</b>
+            <div class="envs">
+              <span><b>api.viecoi.vn</b> — main</span>
+              <span><b>stgapi.viecoi.vn</b> — staging</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">DNS</span><br><b>Point Cloudflare DNS for both domains at the correct server IPs</b> — <code style="font-family:var(--mono)">api.viecoi.vn</code> → wct-1, <code style="font-family:var(--mono)">stgapi.viecoi.vn</code> → wct-2.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t2">Task 2</span>
+        <h3>Guardrail and rules for schema risk</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Consolidate</span><br><b>Move every V3-owned migration and seeder out of <code style="font-family:var(--mono)">viecoi-v3-api</code> and into <code style="font-family:var(--mono)">viecoi</code></b>, so schema ownership has no exceptions — <code style="font-family:var(--mono)">viecoi-v3-api</code> ends up with zero migrations of its own.
+            <p class="note-inline">Concretely: 8 migrations (e.g. <code style="font-family:var(--mono);font-size:0.92em">add_company_search_filter_indexes</code>, <code style="font-family:var(--mono);font-size:0.92em">add_term_for_seo_to_tag_technique</code>) and 4 seeders (3 seeder classes + 1 CSV fixture under <code style="font-family:var(--mono);font-size:0.92em">database/seeders/data/VIO3788/</code>) exist only on <code style="font-family:var(--mono)">develop</code> today — these are what actually need moving.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Draft</span><br><b>CLAUDE.md / AGENTS.md for viecoi</b> — any schema change must come with a matching test update in <code style="font-family:var(--mono)">viecoi-v3-api</code>.<span class="must">must comply strictly</span></div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Build</span><br><b>Write the initial test suite covering all 18 V3 controllers</b>, so the guardrail above has something to enforce from day one.
+            <p class="note-inline">Needs to be feature-level tests against a real migrated database with assertions on actual response content — not mocked unit tests, which would stay green regardless of schema drift. Branch coverage matters most on the search/detail controllers, where the raw-SQL surface concentrates.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>viecoi · viecoi-v3-api — architecture summary for team review</footer>
+
+</div>
+
+</body></html>

@@ -1,0 +1,132 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Báo cáo lỗi Viecoi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#faf9f7; --surface:#ffffff; --border:#e4e0d8; --text:#1f1c16; --text-dim:#6b6355;
+  --accent:#b5502e; --accent-dim:#e9d8cf;
+  --red:#b0392b; --red-bg:#fbe9e6;
+  --amber:#95651a; --amber-bg:#fbf0da;
+  --green:#3a6b3e; --green-bg:#e6f0e3;
+  --gray:#6b6355; --gray-bg:#eeece6;
+  --blue:#2f5a8a; --blue-bg:#e6eef7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#181612; --surface:#221f1a; --border:#3a352c; --text:#f1ede4; --text-dim:#b3ab99;
+    --accent:#e08a5f; --accent-dim:#4a3226;
+    --red:#e5867a; --red-bg:#3a2320;
+    --amber:#e0b360; --amber-bg:#3a2e17;
+    --green:#8fc496; --green-bg:#203524;
+    --gray:#b3ab99; --gray-bg:#2c2922;
+    --blue:#8fb4de; --blue-bg:#1e2c3d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181612; --surface:#221f1a; --border:#3a352c; --text:#f1ede4; --text-dim:#b3ab99;
+  --accent:#e08a5f; --accent-dim:#4a3226;
+  --red:#e5867a; --red-bg:#3a2320;
+  --amber:#e0b360; --amber-bg:#3a2e17;
+  --green:#8fc496; --green-bg:#203524;
+  --gray:#b3ab99; --gray-bg:#2c2922;
+  --blue:#8fb4de; --blue-bg:#1e2c3d;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);margin:0;font-family:"Be Vietnam Pro",system-ui,sans-serif;padding-block:40px;}
+.wrap{max-width:920px;margin:0 auto;padding-inline:20px;}
+h1{font-family:"Fraunces",serif;font-size:clamp(28px,5vw,40px);margin:0 0 6px;text-wrap:balance;}
+.sub{color:var(--text-dim);font-size:15px;margin:0 0 28px;}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:13px;color:var(--text-dim);}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:36px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.stat .n{font-family:"Fraunces",serif;font-size:28px;font-variant-numeric:tabular-nums;}
+.stat .l{font-size:12.5px;color:var(--text-dim);margin-top:2px;}
+.stat.red .n{color:var(--red)}
+.stat.amber .n{color:var(--amber)}
+.stat.green .n{color:var(--green)}
+.stat.gray .n{color:var(--gray)}
+section{margin-bottom:36px;}
+h2{font-family:"Fraunces",serif;font-size:21px;border-bottom:1px solid var(--border);padding-bottom:8px;margin:0 0 14px;}
+.item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px;}
+.item-title{font-weight:600;font-size:15px;line-height:1.4;}
+.badge{flex-shrink:0;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:100px;white-space:nowrap;}
+.badge.red{color:var(--red);background:var(--red-bg);}
+.badge.amber{color:var(--amber);background:var(--amber-bg);}
+.badge.green{color:var(--green);background:var(--green-bg);}
+.badge.gray{color:var(--gray);background:var(--gray-bg);}
+.badge.blue{color:var(--blue);background:var(--blue-bg);}
+.item-ev{font-size:13.5px;color:var(--text-dim);line-height:1.55;}
+.item-ev code{background:var(--accent-dim);color:var(--accent);padding:1px 5px;border-radius:4px;font-size:12.5px;}
+footer{color:var(--text-dim);font-size:13px;border-top:1px solid var(--border);padding-top:18px;margin-top:40px;}
+</style>
+
+<div class="wrap">
+  <h1>Tổng hợp lỗi Viecoi.vn Next.js</h1>
+  <p class="sub">Kết quả rà soát mã nguồn (chỉ đọc, không chỉnh sửa) hai repo — Frontend Next.js và Backend Laravel V3 API — đối chiếu với danh sách lỗi chưa fix trong tài liệu Notion QA.</p>
+  <div class="meta">
+    <span class="chip">Cập nhật: 24/09/2026</span>
+    <span class="chip">Nguồn: QA Notion — "Tổng hợp Lỗi https nextjs viecoi vn"</span>
+    <span class="chip">25 mục</span>
+  </div>
+
+  <div class="summary">
+    <div class="stat red"><div class="n">12</div><div class="l">Vẫn còn lỗi</div></div>
+    <div class="stat amber"><div class="n">2</div><div class="l">Fix một phần</div></div>
+    <div class="stat green"><div class="n">5</div><div class="l">Có vẻ đã fix</div></div>
+    <div class="stat gray"><div class="n">3</div><div class="l">Chưa rõ / cần test lại</div></div>
+  </div>
+
+  <section>
+    <h2>Điều hướng / Routing</h2>
+    <div class="item"><div class="item-head"><div class="item-title">1. Nút "Đăng tin"/"Đăng ký" điều hướng sai theo trạng thái login EMP</div><span class="badge gray">Chưa rõ</span></div><div class="item-ev">Không tìm thấy component khớp mô tả; route <code>/employer/postjob</code> không tồn tại trong repo Next.js. Cần cung cấp URL tái hiện lỗi cụ thể.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">2. Chuyển ngôn ngữ (EN/JA) tự redirect về Toppage</div><span class="badge green">Có vẻ đã fix</span></div><div class="item-ev">Toàn bộ component chuyển ngôn ngữ ở FE đều giữ nguyên path/query hiện tại. Chỉ lỗi nếu backend <code>/api/v3/layout/core</code> trả về URL trang chủ.</div></div>
+  </section>
+
+  <section>
+    <h2>Cẩm Nang Tuyển Dụng</h2>
+    <div class="item"><div class="item-head"><div class="item-title">3. Link tab danh mục trên thumbnail bài viết → 404</div><span class="badge red">Còn lỗi</span></div><div class="item-ev"><code>ArticleMostViewedPage.tsx:241-246</code> vẫn tự dựng URL <code>danh-muc-*.html</code>, chưa được chuyển sang helper an toàn như component <code>CategoryPanel</code> bên cạnh.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">4. "Xem Thêm" / breadcrumb danh mục → 404</div><span class="badge amber">Fix một phần</span></div><div class="item-ev">Chỉ fix cho jobseeker; <b>phía EMP (cam-nang-tuyen-dung) — đúng ví dụ lỗi báo cáo — vẫn chưa được fix.</b></div></div>
+    <div class="item"><div class="item-head"><div class="item-title">5. Khoảng cách dưới header ở trang Cẩm Nang</div><span class="badge green">Có vẻ đã fix</span></div><div class="item-ev">Chuỗi commit CSS chuyên biệt gần nhất 15/09/2026 (VIO-3581/4006/4017). Chưa xác nhận trực quan trên trình duyệt.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">6. Breadcrumb EMP sai khoảng cách/font</div><span class="badge green">Có vẻ đã fix</span></div><div class="item-ev">Đã có class CSS riêng <code>article-page--employer-category</code> (VIO-4006).</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">7. Trang danh-muc-cb.html layout khác staging, sai hình, list theo danh mục nhỏ lỗi</div><span class="badge red">Còn lỗi</span></div><div class="item-ev">Không có logic hero-image cho trang hub; danh sách hiện là list phẳng, không nhóm theo danh mục con. Lịch sử commit cho thấy team né tránh trang này thay vì sửa.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">8. Mất nội dung bài viết (2 URL)</div><span class="badge gray">Chưa rõ — nghi BE/CMS</span></div><div class="item-ev">Code FE render generic, không có nhánh xử lý riêng theo slug. Khả năng cao <code>article.description</code> rỗng ở nguồn dữ liệu.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">9. Mất thumbnail bài viết (auto-enhanced)</div><span class="badge red">Còn lỗi</span></div><div class="item-ev">Không có cơ chế fallback thumbnail nào trong FE; cơ chế cũ đã bị xoá chủ động (commit 05aec943) và chưa được thay thế.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">10. Đoạn SEO Footer thiếu underline link so với bản cũ</div><span class="badge red">Còn lỗi</span></div><div class="item-ev">Cả 2 footer (JS/EMP) render text thuần, không có markup/link — bị rớt khi migrate sang Next.js.</div></div>
+  </section>
+
+  <section>
+    <h2>Tìm việc làm / Chi tiết việc làm</h2>
+    <div class="item"><div class="item-head"><div class="item-title">11. Breadcrumb xuống dòng/cắt sai tại dấu "/"</div><span class="badge green">Có vẻ đã fix</span></div><div class="item-ev">Dùng <code>flex-wrap</code>, xuống dòng theo độ rộng chứ không theo dấu "/". Cắt text chỉ áp dụng cho mobile (có chủ đích).</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">12. Search box bị ẩn dưới breadcrumb</div><span class="badge green">Có vẻ đã fix</span></div><div class="item-ev">Breadcrumb desktop đã ẩn dưới 1024px, thay bằng layout mobile riêng không chồng lấn.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">13. Danh sách việc làm lệch trái khi áp nhiều filter</div><span class="badge gray">Chưa rõ</span></div><div class="item-ev">Không tìm thấy logic layout phụ thuộc số lượng filter. Cần test thủ công với URL nhiều điều kiện.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">14. Tick "Công ty đã xác thực" không đồng bộ</div><span class="badge red">Còn lỗi cả FE & BE</span></div><div class="item-ev"><b>FE:</b> job card trang company-detail dùng <code>Boolean(job.employer)</code> (luôn true → báo sai dương tính); job card liên quan bài viết không set <code>isVerified</code> (thiếu badge). <b>BE (gốc rễ):</b> 3 endpoint trả về 3 kiểu dữ liệu khác nhau cho field xác thực, trang chi tiết công ty còn thiếu hẳn field này.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">15. Widget "Gợi Ý Việc Làm" hiện sai badge "Tuyển Gấp"</div><span class="badge red">Còn lỗi</span></div><div class="item-ev">Badge render vô điều kiện trong <code>ArticleSuggestedJobsClient.tsx</code>, field urgency không hề tồn tại trong type dữ liệu đó.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">16. Job của EMP đã bị block vẫn hiện trên Job Search</div><span class="badge blue">Chỉ lỗi Backend</span></div><div class="item-ev">Query search chỉ lọc theo <code>job_status</code>/<code>status</code>, không kiểm tra trạng thái tài khoản employer. Không thể fix ở FE.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">17. Auto-link danh mục IT trỏ URL cũ thay vì it.viecoi.vn</div><span class="badge red">Còn lỗi cả 2 lớp</span></div><div class="item-ev"><b>BE:</b> hàm sinh link cũ vẫn dùng pattern <code>/tim-viec/danh-muc-...</code>; bản hỗ trợ subdomain tồn tại nhưng là dead code, không được gọi. <b>FE:</b> builder box danh mục cũng hardcode pattern cũ.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">18. Auto-link engine sai/lỗi thời trên diện rộng so với beta sheet</div><span class="badge red">Còn lỗi — chủ yếu do Backend</span></div><div class="item-ev">FE chủ yếu render dữ liệu do BE trả qua API auto-links; BE vẫn dùng pattern link cũ. Thêm 1 lỗ hổng riêng ở FE: fallback builder thiếu logic cho box danh mục/lĩnh vực/VLTN/hybrid khi BE trả rỗng.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">19. Box "Lĩnh vực phổ biến" hiện nhầm danh mục <i>(deferred)</i></div><span class="badge gray">Chưa xử lý sâu</span></div><div class="item-ev">Khả năng rò rỉ dữ liệu từ BE vào <code>functionalRoles</code>; được QA gắn tag "improve later".</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">20. Việc làm tại nhà: không chọn được khu vực mà không mất filter <i>(deferred)</i></div><span class="badge gray">Đúng như báo cáo, khác cơ chế</span></div><div class="item-ev">Bộ chọn khu vực bị disable khi đang chọn WFH, thay vì tab WFH tự mất sau khi chọn khu vực — cùng hạn chế, khác cách thể hiện.</div></div>
+  </section>
+
+  <section>
+    <h2>Lương / Chi tiết việc làm & Cẩm Nang EMP (Backend — phát hiện mới)</h2>
+    <div class="item"><div class="item-head"><div class="item-title">21. Lương "Thỏa thuận" hiển thị "0" ở trang chi tiết</div><span class="badge red">Còn lỗi</span></div><div class="item-ev"><code>JobDetailCoreService.php::compensation()</code> không check <code>salary_type</code> khi max=0. Trang search đã dùng đúng helper <code>compact_salary()</code>, nhưng API detail thì chưa gọi tới.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">22. Trang landing Cẩm Nang EMP trả về 404 (Backend)</div><span class="badge red">Còn lỗi</span></div><div class="item-ev"><code>ArticleCategoryResolutionService.php::normalizeCategorySlug()</code> chỉ xử lý khi slug có dấu "/", trường hợp slug landing trần <code>cam-nang-tuyen-dung</code> không khớp bất kỳ resolver nào.</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">23. Mô tả job Gemini không cập nhật khi admin sửa; không xoá được email KH</div><span class="badge red">Còn lỗi — gốc rễ là cache cũ</span></div><div class="item-ev">Trang public ưu tiên hiển thị nội dung Gemini/admin đã sửa — đúng. Nhưng <b>không có cơ chế đồng bộ</b>: <code>JobObserver::updated()</code> chỉ xoá cache Redis, không kích hoạt lại pipeline Gemini, nên sửa mô tả thô (VD xoá email) không có tác dụng gì trên trang public. Hàm xoá email <code>removeCharactersByRule()</code> là dead code, chưa từng được gọi.</div></div>
+  </section>
+
+  <section>
+    <h2>SEO / Meta</h2>
+    <div class="item"><div class="item-head"><div class="item-title">24. Meta title/description các trang search/hồ sơ/nhà tuyển dụng không khớp beta sheet</div><span class="badge amber">Fix một phần / có thể do data cũ</span></div><div class="item-ev">Service SEO tập trung đã tồn tại với seeder 2026; không tìm thấy chuỗi hardcode "33.855" trong code — số liệu được cache Redis TTL 1 giờ. Khả năng cao là dữ liệu cache/DB cũ, không phải lỗi code.</div></div>
+  </section>
+
+  <footer>
+    Báo cáo đọc-mã-nguồn (read-only), không có thay đổi code nào được thực hiện. Chi tiết đầy đủ tại <code>docs/notion/issue/2026-09-bug-tracker-status.md</code> trong repo <code>viecoi_nextjs</code>.
+  </footer>
+</div>
+
+</body></html>

@@ -1,0 +1,1148 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>CWV LCP Investigation — viecoi.vn Sprint 71 (Copy)</title>
+<meta name="description" content="Kết quả điều tra nguyên nhân LCP regression sau khi cutover Next.js — viecoi.vn Sprint 71">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #F6F8FC;
+  --surface:   #FFFFFF;
+  --border:    #D1D9E6;
+  --border-hi: #B3BFD1;
+  --navy:      #0D1521;
+  --navy-mid:  #1E3050;
+  --text:      #1A2638;
+  --muted:     #5A6E87;
+  --faint:     #8FA0B4;
+  --blue:      #1D4ED8;
+  --blue-soft: #EBF0FB;
+  --blue-mid:  #DBEAFE;
+  --red:       #DC2626;
+  --red-soft:  #FEF2F2;
+  --amber:     #D97706;
+  --amber-soft:#FFFBEB;
+  --green:     #16A34A;
+  --green-soft:#F0FDF4;
+  --mono: "SF Mono", "JetBrains Mono", "Fira Mono", ui-monospace, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.shell { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.nav {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--navy);
+  padding: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+}
+.nav-brand {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 12px;
+}
+.nav-brand-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 4px;
+}
+.nav-brand-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #E2EAF8;
+  line-height: 1.3;
+}
+.nav-section-label {
+  padding: 0 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  margin: 16px 0 6px;
+}
+.nav a {
+  display: block;
+  padding: 7px 20px;
+  font-size: 13px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.nav a:hover {
+  color: #fff;
+  border-left-color: var(--blue);
+  background: rgba(255,255,255,.04);
+}
+.nav a.critical-link { color: #FCA5A5; }
+.nav a.critical-link:hover { color: #FEE2E2; border-left-color: var(--red); }
+
+/* Content */
+.content {
+  flex: 1;
+  max-width: 900px;
+  padding: 40px 48px 80px 48px;
+  min-width: 0;
+}
+
+/* Page header */
+.page-header {
+  margin-bottom: 36px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--border-hi);
+}
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--navy);
+  text-wrap: balance;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.page-meta {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.page-meta span::before { content: ""; }
+
+/* Section */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.section-head {
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.section-icon.blue  { background: var(--blue-mid); }
+.section-icon.red   { background: var(--red-soft); }
+.section-icon.amber { background: var(--amber-soft); }
+.section-icon.green { background: var(--green-soft); }
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.section-subtitle {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.section-body { padding: 20px 24px; }
+
+/* Metric cards */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.metric-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.metric-page {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.metric-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.metric-val {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.metric-val.worse { color: var(--red); }
+.metric-val.ok    { color: var(--amber); }
+.metric-prev {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--faint);
+  text-decoration: line-through;
+}
+.metric-label { font-size: 12px; color: var(--muted); }
+.metric-delta {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.metric-delta.up { background: var(--red-soft); color: var(--red); }
+.metric-delta.down { background: var(--green-soft); color: var(--green); }
+.score-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+.score-chip {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.score-chip.poor { background: var(--red-soft); color: var(--red); }
+.score-chip.needs { background: var(--amber-soft); color: var(--amber); }
+.score-target { font-size: 11px; color: var(--faint); }
+
+/* Call-out box */
+.callout {
+  border-radius: 6px;
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+}
+.callout.red   { background: var(--red-soft);   border-left: 3px solid var(--red); }
+.callout.amber { background: var(--amber-soft);  border-left: 3px solid var(--amber); }
+.callout.blue  { background: var(--blue-soft);   border-left: 3px solid var(--blue); }
+.callout-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+.callout strong { color: var(--navy); font-weight: 700; }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 12px 10px 12px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+th:first-child { padding-left: 0; }
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+td:first-child { padding-left: 0; }
+tr:last-child td { border-bottom: none; }
+td.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+td.mono.red { color: var(--red); font-weight: 600; }
+td.mono.amber { color: var(--amber); font-weight: 600; }
+td.mono.green { color: var(--green); font-weight: 600; }
+td.mono.muted { color: var(--faint); }
+
+/* Severity badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.badge.critical { background: var(--red-soft);   color: var(--red);   }
+.badge.high     { background: var(--amber-soft);  color: var(--amber); }
+.badge.medium   { background: var(--blue-mid);    color: #1E40AF;      }
+.badge.low      { background: #F1F5F9;            color: #475569;      }
+.badge.done     { background: var(--green-soft);  color: var(--green); }
+
+/* Size bars */
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  flex: 1;
+  overflow: hidden;
+}
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-fill.red   { background: var(--red); }
+.bar-fill.amber { background: var(--amber); }
+.bar-fill.blue  { background: var(--blue); }
+.bar-val {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 54px;
+  text-align: right;
+}
+
+/* Issue list */
+.issue-list { display: flex; flex-direction: column; gap: 10px; }
+.issue-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.issue-badge { padding-top: 1px; }
+.issue-title { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+.issue-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.issue-code  { font-family: var(--mono); font-size: 11.5px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); padding: 2px 6px; border-radius: 3px; white-space: nowrap; margin-top: 4px; display: inline-block; }
+.issue-impact {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  text-align: right;
+  padding-top: 2px;
+}
+
+/* CSS source breakdown chart */
+.css-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.css-block { }
+.css-block-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.css-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.css-label { font-size: 12px; color: var(--text); min-width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.css-bar { flex: 1; height: 8px; border-radius: 4px; overflow: hidden; background: var(--border); }
+.css-bar-fill { height: 100%; border-radius: 4px; }
+.css-bar-fill.nextjs { background: var(--blue); }
+.css-bar-fill.legacy { background: #8B5CF6; }
+.css-sz {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-width: 42px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Dividers */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* Inline path */
+.path {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: #F1F5F9;
+  color: #334155;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Summary numbers */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+.summary-cell {
+  padding: 16px 18px;
+  border-right: 1px solid var(--border);
+}
+.summary-cell:last-child { border-right: none; }
+.summary-cell-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.summary-cell-val { font-family: var(--mono); font-size: 20px; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+.summary-cell-val.red { color: var(--red); }
+.summary-cell-val.amber { color: var(--amber); }
+.summary-cell-sub { font-size: 12px; color: var(--faint); margin-top: 2px; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; border-left: 2px solid var(--border); margin-left: 8px; padding-left: 20px; }
+.timeline-item { position: relative; padding-bottom: 18px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-dot {
+  position: absolute;
+  left: -27px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+.timeline-dot.done   { background: var(--green); }
+.timeline-dot.open   { background: var(--red); }
+.timeline-dot.medium { background: var(--amber); }
+.timeline-date { font-size: 11px; font-family: var(--mono); color: var(--faint); margin-bottom: 3px; }
+.timeline-title { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+.timeline-note  { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+@media (max-width: 780px) {
+  .shell { flex-direction: column; }
+  .nav { width: 100%; height: auto; position: static; overflow-x: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; }
+  .nav-brand { border-bottom: none; margin-bottom: 0; padding: 0 12px 0 0; border-right: 1px solid rgba(255,255,255,.1); }
+  .nav-section-label { display: none; }
+  .nav a { padding: 6px 10px; border-left: none; border-bottom: 2px solid transparent; font-size: 12px; }
+  .content { padding: 24px 20px 48px; }
+  .metric-grid, .css-breakdown, .summary-grid { grid-template-columns: 1fr; }
+  .issue-item { grid-template-columns: auto 1fr; }
+  .issue-impact { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="shell">
+
+<!-- ── Sidebar navigation ── -->
+<nav class="nav" aria-label="Sections">
+  <div class="nav-brand">
+    <div class="nav-brand-label">CWV Audit</div>
+    <div class="nav-brand-title">LCP Investigation<br>Sprint 71</div>
+  </div>
+  <div class="nav-section-label">Overview</div>
+  <a href="#metrics">Chỉ số hồi quy</a>
+  <a href="#why">Tại sao LCP tệ hơn?</a>
+  <div class="nav-section-label">Nguyên nhân</div>
+  <a href="#css-blocking" class="critical-link">CSS Blocking (Chính)</a>
+  <a href="#hero-image">Hero Image</a>
+  <a href="#rsc-payload">RSC Payload</a>
+  <a href="#nginx">Nginx gzip</a>
+  <div class="nav-section-label">Trang</div>
+  <a href="#homepage">Homepage</a>
+  <a href="#search">Search Page</a>
+  <a href="#job-detail">Job Detail</a>
+  <div class="nav-section-label">Action</div>
+  <a href="#done">Đã làm ✓</a>
+  <a href="#todo">Cần làm</a>
+</nav>
+
+<!-- ── Main content ── -->
+<main class="content">
+
+  <div class="page-header">
+    <div class="page-eyebrow">Core Web Vitals — Điều tra hồi quy</div>
+    <h1 class="page-title">LCP worsened significantly after Next.js cutover (09-05)</h1>
+    <div class="page-meta">
+      <span>Thực hiện: 14/09/2026</span>
+      <span>Branch: Next.js SSR production</span>
+      <span>Server: 172.16.6.89</span>
+    </div>
+  </div>
+
+  <!-- ── Metrics ── -->
+  <div class="section" id="metrics">
+    <div class="section-head">
+      <div class="section-icon blue">📊</div>
+      <div>
+        <div class="section-title">Chỉ số hồi quy — S69 → S71</div>
+        <div class="section-subtitle">LCP tăng mạnh ở tất cả 3 trang sau khi cutover Next.js ngày 05/09</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="metric-grid">
+
+        <div class="metric-card">
+          <div class="metric-page">Homepage</div>
+          <div class="metric-row">
+            <div class="metric-val worse">26.5s</div>
+            <div class="metric-prev">10.2s</div>
+            <div class="metric-delta up">+16.3s ▲2.6×</div>
+          </div>
+          <div class="metric-label">LCP (Largest Contentful Paint)</div>
+          <div class="score-row">
+            <div class="score-chip poor">50</div>
+            <div class="score-target">Target: 60 &nbsp;(–10)</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-page">Search Page</div>
+          <div class="metric-row">
+            <div class="metric-val worse">20.3s</div>
+            <div class="metric-prev">16.4s</div>
+            <div class="metric-delta up">+3.9s ▲1.2×</div>
+          </div>
+          <div class="metric-label">LCP (Largest Contentful Paint)</div>
+          <div class="score-row">
+            <div class="score-chip poor">45</div>
+            <div class="score-target">Target: 75 &nbsp;(–30 ⚠)</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-page">Job Detail</div>
+          <div class="metric-row">
+            <div class="metric-val ok">12.4s</div>
+            <div class="metric-prev">7.3s</div>
+            <div class="metric-delta up">+5.1s ▲1.7×</div>
+          </div>
+          <div class="metric-label">LCP (Largest Contentful Paint)</div>
+          <div class="score-row">
+            <div class="score-chip needs">58</div>
+            <div class="score-target">Target: 70 &nbsp;(–12)</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout blue">
+        <div class="callout-icon">ℹ</div>
+        <div><strong>TBT cải thiện</strong> — TBT (Total Blocking Time) giảm rõ (job detail: 430ms → 117ms), cho thấy JS execution nhẹ hơn. Vấn đề chỉ nằm ở <em>content render completion</em>, không phải JS. Đây là dấu hiệu của render-blocking CSS, không phải JavaScript.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Why ── -->
+  <div class="section" id="why">
+    <div class="section-head">
+      <div class="section-icon amber">🔍</div>
+      <div>
+        <div class="section-title">Tại sao LCP tệ hơn sau Next.js?</div>
+        <div class="section-subtitle">Cơ chế gây ra LCP regression trong Lighthouse mobile simulation</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="callout red">
+        <div class="callout-icon">⚡</div>
+        <div><strong>Root cause chính:</strong> Next.js App Router bundle toàn bộ CSS thành các chunk render-blocking. Homepage hiện có <strong>20 blocking CSS requests (1,116 KB)</strong>, search page có <strong>36 requests (1,446 KB)</strong>. Laravel cũ chỉ có ~3–5 CSS files nhỏ hơn. Trong Lighthouse mobile simulation (throttled ~1.6 Mbps), trình duyệt phải download hết CSS mới render được bất kỳ pixel nào.</div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="summary-cell-label">TTFB (Next.js)</div>
+          <div class="summary-cell-val">~220ms</div>
+          <div class="summary-cell-sub">Server phản hồi nhanh ✓</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-cell-label">CSS blocking (homepage)</div>
+          <div class="summary-cell-val red">1,116 KB</div>
+          <div class="summary-cell-sub">20 files — download trước khi render</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-cell-label">Hero image</div>
+          <div class="summary-cell-val amber">1.4 MB</div>
+          <div class="summary-cell-sub">306×340px — oversized ×30</div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Giai đoạn</th>
+              <th>Lighthouse 1.6 Mbps</th>
+              <th>Tác động lên LCP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TTFB + HTML</td>
+              <td class="mono green">0.2–0.5s</td>
+              <td>OK — không phải bottleneck</td>
+            </tr>
+            <tr>
+              <td>Download 1.1 MB CSS (20 files)</td>
+              <td class="mono red">~5.5s</td>
+              <td>Render bị chặn hoàn toàn</td>
+            </tr>
+            <tr>
+              <td>Parse &amp; apply CSS</td>
+              <td class="mono amber">~0.5s</td>
+              <td>Thêm delay</td>
+            </tr>
+            <tr>
+              <td>Hero image 1.4 MB (preloaded)</td>
+              <td class="mono red">~7s</td>
+              <td>LCP element phải download xong mới ghi nhận</td>
+            </tr>
+            <tr>
+              <td><strong>Tổng</strong></td>
+              <td class="mono red"><strong>≈13–16s</strong></td>
+              <td>Phù hợp với LCP 26.5s đo được</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CSS Blocking ── -->
+  <div class="section" id="css-blocking">
+    <div class="section-head">
+      <div class="section-icon red">🔴</div>
+      <div>
+        <div class="section-title">Render-Blocking CSS — Nguyên nhân chính</div>
+        <div class="section-subtitle">Đo từ server <span class="path">localhost:3109</span> — dữ liệu uncompressed thực tế</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="css-breakdown">
+        <div class="css-block">
+          <div class="css-block-title">Homepage — 20 files, 1,116 KB</div>
+
+          <div class="css-row">
+            <div class="css-label" title="2skn770xvpmiy.css (homepage.css bundle)">homepage.css bundle</div>
+            <div class="css-bar"><div class="css-bar-fill nextjs" style="width:100%"></div></div>
+            <div class="css-sz">358 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label" title="custommin.css">custommin.css</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:38%"></div></div>
+            <div class="css-sz">137 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label" title="1z01hoit1geg9.css">Next.js chunk ×3 (69KB)</div>
+            <div class="css-bar"><div class="css-bar-fill nextjs" style="width:58%"></div></div>
+            <div class="css-sz">69 KB ×3</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">bootstrap.min.css</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:28%"></div></div>
+            <div class="css-sz">100 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">app.css</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:21%"></div></div>
+            <div class="css-sz">74 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">Next.js chunks (nhỏ ×8)</div>
+            <div class="css-bar"><div class="css-bar-fill nextjs" style="width:55%"></div></div>
+            <div class="css-sz">≈198 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">Legacy nhỏ ×4</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:17%"></div></div>
+            <div class="css-sz">65 KB</div>
+          </div>
+        </div>
+
+        <div class="css-block">
+          <div class="css-block-title">Search — 36 files, 1,446 KB ⚠</div>
+
+          <div class="css-row">
+            <div class="css-label" title="1ttw9nxqb_t2n.css (search CSS bundle)">search CSS bundle</div>
+            <div class="css-bar"><div class="css-bar-fill nextjs" style="width:100%"></div></div>
+            <div class="css-sz">386 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">custommin.css</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:36%"></div></div>
+            <div class="css-sz">137 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">fontawesome.css <span class="badge critical" style="font-size:9px;padding:1px 4px">blocking!</span></div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:29%"></div></div>
+            <div class="css-sz">113 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">Next.js chunk 79KB</div>
+            <div class="css-bar"><div class="css-bar-fill nextjs" style="width:21%"></div></div>
+            <div class="css-sz">80 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">bootstrap.min.css</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:26%"></div></div>
+            <div class="css-sz">100 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">searchJobEvent*.css ×3</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:23%"></div></div>
+            <div class="css-sz">89 KB</div>
+          </div>
+          <div class="css-row">
+            <div class="css-label">Còn lại ×27</div>
+            <div class="css-bar"><div class="css-bar-fill legacy" style="width:35%"></div></div>
+            <div class="css-sz">≈541 KB</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout amber">
+        <div class="callout-icon">⚠</div>
+        <div><strong>Search page có 36 blocking CSS requests</strong> — nhiều hơn homepage (20 files) vì: (1) FontAwesome 4 files chưa được defer như homepage, (2) legacy homepage CSS không bị loại bỏ cho search surface, (3) search-popup CSS có split nhưng phần lớn legacy vẫn blocking.</div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nguồn CSS</th>
+              <th>Homepage</th>
+              <th>Search</th>
+              <th>Tình trạng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Next.js CSS chunks (/_next/static/)</td>
+              <td class="mono">12 files / 711 KB</td>
+              <td class="mono">12 files / 765 KB</td>
+              <td><span class="badge high">Blocking</span></td>
+            </tr>
+            <tr>
+              <td>Legacy CSS (bootstrap, custommin, app…)</td>
+              <td class="mono">8 files / 405 KB</td>
+              <td class="mono">24 files / 681 KB</td>
+              <td><span class="badge high">Blocking</span></td>
+            </tr>
+            <tr>
+              <td>FontAwesome 6 (4 files)</td>
+              <td class="mono green">Deferred ✓</td>
+              <td class="mono red">Blocking ✗</td>
+              <td><span class="badge critical">Inconsistent</span></td>
+            </tr>
+            <tr>
+              <td>Homepage content CSS (owl, swiper, toppage…)</td>
+              <td class="mono green">Deferred ✓</td>
+              <td class="mono red">Blocking ✗</td>
+              <td><span class="badge critical">Not split</span></td>
+            </tr>
+            <tr>
+              <td>Search popup CSS</td>
+              <td class="mono muted">N/A</td>
+              <td class="mono green">Split ✓</td>
+              <td><span class="badge done">Done</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Hero Image ── -->
+  <div class="section" id="hero-image">
+    <div class="section-head">
+      <div class="section-icon amber">🖼</div>
+      <div>
+        <div class="section-title">Hero Image — 1.4 MB cho ảnh 306×340px</div>
+        <div class="section-subtitle"><span class="path">/images/banner-toppage1.webp</span> — LCP element của homepage</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Thuộc tính</th><th>Hiện tại</th><th>Nên là</th><th>Mức độ</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>File size</td>
+              <td class="mono red">1,423,730 bytes (1.4 MB)</td>
+              <td class="mono green">≤ 50 KB</td>
+              <td><span class="badge critical">Critical</span></td>
+            </tr>
+            <tr>
+              <td>Kích thước render</td>
+              <td class="mono">306 × 340 px</td>
+              <td class="mono">306 × 340 px (retina: ×2 = 612×680)</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Cache-Control từ Next.js</td>
+              <td class="mono red">public, max-age=0</td>
+              <td class="mono green">max-age=31536000, immutable</td>
+              <td><span class="badge high">High</span></td>
+            </tr>
+            <tr>
+              <td>Preload hint</td>
+              <td class="mono green">✓ fetchPriority="high"</td>
+              <td>—</td>
+              <td><span class="badge done">OK</span></td>
+            </tr>
+            <tr>
+              <td>Next.js Image component</td>
+              <td class="mono red">Không dùng — &lt;img&gt; thô</td>
+              <td class="mono green">Dùng next/image để auto-optimize</td>
+              <td><span class="badge high">High</span></td>
+            </tr>
+            <tr>
+              <td>Logo SVG preload priority</td>
+              <td class="mono amber">fetchPriority="high" (cạnh tranh)</td>
+              <td class="mono">fetchPriority="low" cho logo</td>
+              <td><span class="badge medium">Medium</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout amber">
+        <div class="callout-icon">⚠</div>
+        <div>File <span class="path">banner-toppage1.webp</span> nặng 1.4 MB nhưng chỉ render ở kích thước 306×340px. WebP được nén tốt, 1.4 MB là bất thường — có thể là ảnh gốc rất lớn được export sang WebP mà không resize. Ảnh đúng chuẩn cho kích thước này không vượt quá 50–80 KB.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RSC Payload ── -->
+  <div class="section" id="rsc-payload">
+    <div class="section-head">
+      <div class="section-icon amber">📦</div>
+      <div>
+        <div class="section-title">RSC Inline Payload — Search page 476 KB</div>
+        <div class="section-subtitle">Next.js nhúng toàn bộ data job list vào HTML dưới dạng <span class="path">self.__next_f.push()</span></div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Trang</th><th>RSC payload (inline)</th><th>Vị trí trong HTML</th><th>Ảnh hưởng LCP</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Homepage</td>
+              <td class="mono amber">269 KB</td>
+              <td class="mono">sau content (pos 423KB/692KB)</td>
+              <td>Không block LCP — sau visible content</td>
+            </tr>
+            <tr>
+              <td>Search page</td>
+              <td class="mono red">476 KB</td>
+              <td class="mono">sau content</td>
+              <td>Tăng total transfer size → delay streaming</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout blue">
+        <div class="callout-icon">ℹ</div>
+        <div>RSC payload xuất hiện sau <span class="path">&lt;/footer&gt;</span> — KHÔNG block LCP trực tiếp. Nhưng HTML search page nặng <strong>1 MB raw (107 KB gzip)</strong>. Với mạng 3G, download 107 KB mất ~0.5–1s, cộng thêm vào total load time. Tác động ở mức trung bình, không phải nguyên nhân chính.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Nginx ── -->
+  <div class="section" id="nginx">
+    <div class="section-head">
+      <div class="section-icon amber">⚙</div>
+      <div>
+        <div class="section-title">Nginx — gzip_types bị comment out</div>
+        <div class="section-subtitle"><span class="path">/etc/nginx/nginx.conf</span></div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Resource</th><th>Cloudflare (BR)</th><th>Direct Nginx</th><th>Lab / Crawler</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Next.js CSS 357 KB</td>
+              <td class="mono green">Compressed ✓</td>
+              <td class="mono red">357 KB uncompressed</td>
+              <td class="mono amber">Uncompressed ✗</td>
+            </tr>
+            <tr>
+              <td>HTML response</td>
+              <td class="mono green">Compressed ✓</td>
+              <td class="mono green">~103 KB gzip ✓</td>
+              <td class="mono green">OK</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout amber">
+        <div class="callout-icon">⚠</div>
+        <div>Nginx có <span class="path">gzip on</span> nhưng <span class="path">gzip_types</span> bị comment → chỉ compress <strong>text/html</strong>. CSS, JS không được Nginx compress. Cloudflare bù lại bằng Brotli cho real users. Nhưng <strong>PageSpeed Insights / Lighthouse crawlers</strong> (khi cache MISS) có thể nhận CSS uncompressed từ origin. Uncommenting <span class="path">gzip_types</span> sẽ đảm bảo PSI nhận CSS đã nén.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Homepage detail ── -->
+  <div class="section" id="homepage">
+    <div class="section-head">
+      <div class="section-icon blue">🏠</div>
+      <div>
+        <div class="section-title">Homepage — Chi tiết</div>
+        <div class="section-subtitle">LCP: 10.2s → 26.5s | Score: 50/60</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Giá trị</th><th>Nguồn</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TTFB</td><td class="mono green">228ms</td><td>curl localhost:3109</td></tr>
+            <tr><td>HTML size (raw)</td><td class="mono">692 KB</td><td>server response</td></tr>
+            <tr><td>HTML size (gzip)</td><td class="mono green">103 KB</td><td>after compression</td></tr>
+            <tr><td>&lt;head&gt; size</td><td class="mono amber">86.6 KB</td><td>88,666 bytes</td></tr>
+            <tr><td>Blocking CSS</td><td class="mono red">20 files / 1,116 KB</td><td>analyzed</td></tr>
+            <tr><td>Deferred CSS</td><td class="mono green">5 files (FA + homepage content)</td><td>analyzed</td></tr>
+            <tr><td>RSC payload</td><td class="mono">269 KB inline</td><td>pos 423KB/692KB HTML</td></tr>
+            <tr><td>Hero image</td><td class="mono red">1.4 MB / 306×340px</td><td>/images/banner-toppage1.webp</td></tr>
+            <tr><td>Hero preload</td><td class="mono green">✓ fetchPriority="high"</td><td>in &lt;head&gt; pos 295 bytes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Search detail ── -->
+  <div class="section" id="search">
+    <div class="section-head">
+      <div class="section-icon red">🔍</div>
+      <div>
+        <div class="section-title">Search Page — Chi tiết (Tệ nhất)</div>
+        <div class="section-subtitle">LCP: 16.4s → 20.3s | Score: 45/75 — thiếu 30 điểm</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="callout red">
+        <div class="callout-icon">🔴</div>
+        <div><strong>Search page là trang cần ưu tiên cao nhất</strong> — chỉ đạt 45/75 điểm, thiếu 30 điểm so với target. Nguyên nhân: 36 blocking CSS files (nhiều nhất), FontAwesome chưa được defer (fix đã làm cho homepage nhưng bỏ sót search), và HTML 1 MB chứa toàn bộ job list.</div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Giá trị</th><th>So với Homepage</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TTFB</td><td class="mono green">245ms</td><td>Tương đương ✓</td></tr>
+            <tr><td>HTML size (raw)</td><td class="mono red">1,019 KB</td><td>692 KB homepage ↑47%</td></tr>
+            <tr><td>HTML size (gzip)</td><td class="mono amber">107 KB</td><td>103 KB homepage</td></tr>
+            <tr><td>&lt;head&gt; size</td><td class="mono">28.9 KB</td><td>Nhỏ hơn homepage ✓</td></tr>
+            <tr><td>Blocking CSS</td><td class="mono red">36 files / 1,446 KB</td><td>Homepage 20 files / 1,116 KB</td></tr>
+            <tr><td>FontAwesome</td><td class="mono red">Blocking ✗ (4 files)</td><td>Homepage: Deferred ✓</td></tr>
+            <tr><td>RSC payload</td><td class="mono red">476 KB inline</td><td>Homepage 269 KB</td></tr>
+            <tr><td>Total download</td><td class="mono red">~2.5 MB blocking</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Job detail ── -->
+  <div class="section" id="job-detail">
+    <div class="section-head">
+      <div class="section-icon blue">💼</div>
+      <div>
+        <div class="section-title">Job Detail — Chi tiết</div>
+        <div class="section-subtitle">LCP: 7.3s → 12.4s | Score: 58/70</div>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Giá trị</th><th>Ghi chú</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TTFB</td><td class="mono green">187ms</td><td>Nhanh nhất trong 3 trang</td></tr>
+            <tr><td>HTML size (gzip)</td><td class="mono green">~4 KB</td><td>Job detail nhẹ hơn nhiều (cache HIT?)</td></tr>
+            <tr><td>TBT improvement</td><td class="mono green">430ms → 117ms</td><td>Cải thiện 3.7× nhờ Next.js</td></tr>
+            <tr><td>LCP element</td><td class="mono">Chưa xác định</td><td>Cần kiểm tra bằng Lighthouse trace</td></tr>
+            <tr><td>Blocking CSS</td><td class="mono amber">~20–25 files</td><td>Chưa đo trực tiếp</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Đã làm ── -->
+  <div class="section" id="done">
+    <div class="section-head">
+      <div class="section-icon green">✅</div>
+      <div>
+        <div class="section-title">Đã thực hiện — LCP Review 07/09</div>
+        <div class="section-subtitle">Các fix từ sprint review, đã merge vào production</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-date">Step 2 — 07/09/2026</div>
+          <div class="timeline-title">FontAwesome defer — Homepage</div>
+          <div class="timeline-note">4 file FA6 CSS chuyển sang <span class="path">media="print"</span> + JS swap on load. Chỉ áp dụng homepage, chưa áp dụng search page.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-date">Step 3 — 07/09/2026</div>
+          <div class="timeline-title">Homepage content CSS split (critical + deferred)</div>
+          <div class="timeline-note">owl, swiper, banner, toppage CSS được bundle vào <span class="path">homepage-deferred-*.css</span>, inline critical CSS, deferred non-critical qua <span class="path">media="print"</span>.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-date">Step 3 — 07/09/2026</div>
+          <div class="timeline-title">article.css &amp; employer-guide.css tách khỏi global CSS</div>
+          <div class="timeline-note">54 KB CSS không còn load trên tất cả trang. Import trực tiếp vào các route cần.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-date">Step — 07/09/2026</div>
+          <div class="timeline-title">Search popup CSS split</div>
+          <div class="timeline-note"><span class="path">listjobdetailsearch.css</span> và <span class="path">job-popup-ajax.css</span> split thành critical inline + deferred.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-date">Trước đó</div>
+          <div class="timeline-title">Hero image preload</div>
+          <div class="timeline-note"><span class="path">fetchPriority="high"</span> + <span class="path">loading="eager"</span> cho hero image. Preload hint trong &lt;head&gt; ở position 295 bytes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Action items ── -->
+  <div class="section" id="todo">
+    <div class="section-head">
+      <div class="section-icon red">📋</div>
+      <div>
+        <div class="section-title">Cần làm — Priority List</div>
+        <div class="section-subtitle">Sắp xếp theo tác động lên LCP score</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="issue-list">
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge critical">Critical</span></div>
+          <div>
+            <div class="issue-title">Search page: Defer FontAwesome (4 files, 113 KB)</div>
+            <div class="issue-desc">Áp dụng cùng pattern media=print như homepage. File thực hiện: <span class="path">src/lib/layout/legacy-assets.ts</span> — thêm FA paths vào <code>JOB_SEARCH_SURFACE_EXCLUDED_STYLESHEET_PATHS</code> (hoặc tạo split tương tự homepage). Nhanh nhất, tác động lớn nhất.</div>
+          </div>
+          <div class="issue-impact">–113 KB blocking</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge critical">Critical</span></div>
+          <div>
+            <div class="issue-title">Optimize hero image: 1.4 MB → &lt;80 KB</div>
+            <div class="issue-desc">File <span class="path">/public/images/banner-toppage1.webp</span> nặng 1.4 MB cho 306×340px. Resize và re-export lại. Target: ≤80 KB. Dùng <span class="path">next/image</span> với width/height hoặc Squoosh/cwebp để pre-optimize.</div>
+          </div>
+          <div class="issue-impact">–1.3 MB</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge high">High</span></div>
+          <div>
+            <div class="issue-title">Hero image Cache-Control: max-age=0 → immutable</div>
+            <div class="issue-desc">Thêm header rule trong <span class="path">next.config.ts</span> cho <code>/images/**</code>:
+            <code class="issue-code">Cache-Control: public, max-age=31536000, immutable</code>
+            Hiện tại mỗi page load phải re-fetch image từ server dù đã có trong browser.</div>
+          </div>
+          <div class="issue-impact">Loại bỏ re-fetch</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge high">High</span></div>
+          <div>
+            <div class="issue-title">Search page: Defer homepage content CSS (owl, swiper, toppage…)</div>
+            <div class="issue-desc">Search page hiện load toàn bộ homepage CSS (owl, swiper, banner, toppage, index10, home.css) dưới dạng blocking. Các file này không cần render critical path cho search. Tạo <span class="path">SEARCH_DEFERRED_STYLESHEET_PATHS</span> tương tự homepage split.</div>
+          </div>
+          <div class="issue-impact">–200+ KB blocking</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge high">High</span></div>
+          <div>
+            <div class="issue-title">Nginx gzip_types: uncomment để compress CSS/JS</div>
+            <div class="issue-desc">Trong <span class="path">/etc/nginx/nginx.conf</span>, uncomment dòng:
+            <code class="issue-code">gzip_types text/plain text/css application/json application/javascript text/xml;</code>
+            Đảm bảo PSI/Lighthouse crawlers nhận CSS đã compressed từ origin, kể cả khi Cloudflare cache MISS.</div>
+          </div>
+          <div class="issue-impact">–75% CSS size truyền</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge medium">Medium</span></div>
+          <div>
+            <div class="issue-title">Logo SVG: hạ priority từ high → auto</div>
+            <div class="issue-desc">Trong <span class="path">PublicLayoutShell.tsx</span>, header logo SVG đang preload với <code>fetchPriority="high"</code> — cạnh tranh bandwidth với hero image (cũng high priority). Logo không phải LCP element, không cần high priority.</div>
+          </div>
+          <div class="issue-impact">Giảm bandwidth contention</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge medium">Medium</span></div>
+          <div>
+            <div class="issue-title">Audit Next.js CSS chunks lớn (357–386 KB)</div>
+            <div class="issue-desc">Chunk <span class="path">2skn770xvpmiy.css</span> (357 KB) và <span class="path">1ttw9nxqb_t2n.css</span> (386 KB) — cần dùng <span class="path">ANALYZE=true</span> bundle analyzer để xác định CSS nào thực sự cần cho above-the-fold. Có thể tách critical CSS inline như đã làm với homepage content.</div>
+          </div>
+          <div class="issue-impact">–200–300 KB blocking</div>
+        </div>
+
+        <div class="issue-item">
+          <div class="issue-badge"><span class="badge low">Low</span></div>
+          <div>
+            <div class="issue-title">Search: Pagination hoặc streaming để giảm RSC payload</div>
+            <div class="issue-desc">Search page RSC payload 476 KB (job list data embedded). Xem xét giảm items per page hoặc dùng Suspense streaming để split job list thành chunk riêng. Tác động thấp hơn vì payload nằm sau visible content.</div>
+          </div>
+          <div class="issue-impact">–100–200 KB HTML</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+</body></html>

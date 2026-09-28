@@ -1,0 +1,587 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Tách Viecoi API</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    --paper: #eef2f1;
+    --paper-raised: #ffffff;
+    --ink: #182225;
+    --ink-soft: #4b5a5c;
+    --line: #c9d3d1;
+    --line-soft: #dbe3e1;
+
+    --teal: #2d6a68;
+    --teal-soft: #dceae8;
+    --amber: #a5751f;
+    --amber-soft: #f3e6cd;
+    --risk: #a4402f;
+    --risk-soft: #f5ded8;
+    --good: #4c6b3f;
+    --good-soft: #e2ead9;
+
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #12181a;
+      --paper-raised: #182022;
+      --ink: #e9eeec;
+      --ink-soft: #a9b6b5;
+      --line: #2c3a3b;
+      --line-soft: #22302f;
+
+      --teal: #6db3af;
+      --teal-soft: #1c3230;
+      --amber: #d3a75c;
+      --amber-soft: #362a16;
+      --risk: #e0836f;
+      --risk-soft: #3a2420;
+      --good: #93b47f;
+      --good-soft: #232f1e;
+    }
+  }
+
+  :root[data-theme="dark"]{
+    --paper: #12181a;
+    --paper-raised: #182022;
+    --ink: #e9eeec;
+    --ink-soft: #a9b6b5;
+    --line: #2c3a3b;
+    --line-soft: #22302f;
+
+    --teal: #6db3af;
+    --teal-soft: #1c3230;
+    --amber: #d3a75c;
+    --amber-soft: #362a16;
+    --risk: #e0836f;
+    --risk-soft: #3a2420;
+    --good: #93b47f;
+    --good-soft: #232f1e;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-font-smoothing: antialiased; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+  }
+
+  .page{
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4.5rem 1.75rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  .head{ display: flex; flex-direction: column; gap: 0.9rem; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 0.55rem; height: 0.55rem;
+    border-radius: 1px;
+    background: var(--teal);
+    transform: rotate(45deg);
+    flex: none;
+  }
+  h1{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 4.4vw, 2.6rem);
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek{
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 34rem;
+    margin: 0;
+  }
+  .meta-row{
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .meta-row span b{ color: var(--ink); font-weight: 500; }
+
+  section{ display: flex; flex-direction: column; gap: 1.1rem; }
+  .section-title{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.32rem;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .section-note{
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 40rem;
+  }
+
+  .scope{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper-raised);
+  }
+  .scope-col{
+    padding: 1.5rem 1.5rem 1.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .scope-col + .scope-col{ border-left: 1px solid var(--line); }
+  .scope-tag{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    width: fit-content;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+  }
+  .tag-teal{ background: var(--teal-soft); color: var(--teal); }
+  .tag-amber{ background: var(--amber-soft); color: var(--amber); }
+  .scope-col h3{
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+  }
+  .scope-col ul{
+    margin: 0; padding: 0;
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0.55rem;
+    font-size: 0.94rem;
+  }
+  .scope-col li{ padding-left: 1rem; position: relative; }
+  .scope-col li::before{
+    content: "–";
+    position: absolute; left: 0; color: var(--ink-soft);
+  }
+  .seam{
+    grid-column: 1 / -1;
+    padding: 0.7rem 1.5rem;
+    background: var(--line-soft);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .seam::before{ content: "⌁"; color: var(--risk); font-size: 0.9rem; }
+
+  .stats{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat{
+    background: var(--paper-raised);
+    padding: 1.2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .stat .n{
+    font-family: var(--serif);
+    font-size: 1.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat .n.good{ color: var(--good); }
+  .stat .n.risk{ color: var(--risk); }
+  .stat .l{
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+
+  .risk-block{
+    border: 1px solid color-mix(in srgb, var(--risk) 35%, var(--line));
+    background: var(--risk-soft);
+    border-radius: 6px;
+    padding: 1.5rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .risk-block .section-title{ color: var(--risk); font-size: 1.15rem; }
+  .risk-block p{ margin: 0; font-size: 0.96rem; }
+  .risk-block code{
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--paper-raised);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--line-soft);
+  }
+
+  .options{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .opt{
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    padding: 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .opt-head{ display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+  .opt-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0;
+  }
+  .opt-head .who{
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .opt p{ margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+  .opt .catch{
+    font-size: 0.86rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .opt .catch::before{ content: "!"; font-family: var(--mono); color: var(--risk); font-weight: 500; }
+
+  .rec{
+    border-left: 3px solid var(--teal);
+    padding: 0.2rem 0 0.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rec .section-title{ font-size: 1.1rem; }
+  .rec p{ margin: 0; font-size: 0.97rem; }
+
+  .steps{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .step{
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: flex-start;
+  }
+  .step .box{
+    flex: none;
+    width: 1.05rem; height: 1.05rem;
+    margin-top: 0.15rem;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 3px;
+  }
+  .step .tx{ font-size: 0.95rem; }
+  .step .tx b{ font-weight: 600; }
+  .step .tag{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .task-group{
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+  }
+  .task-head{ display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+  .task-num{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+    flex: none;
+  }
+  .task-num.t1{ background: var(--amber-soft); color: var(--amber); }
+  .task-num.t2{ background: var(--risk-soft); color: var(--risk); }
+  .task-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.08rem;
+    margin: 0;
+  }
+  .task-group .steps{ border-top: 1px solid var(--line-soft); }
+  .envs{
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+  .envs b{ color: var(--ink); font-weight: 500; }
+  .note-inline{
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0.15rem 0 0;
+  }
+  .must{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    color: var(--risk);
+    border: 1px solid color-mix(in srgb, var(--risk) 45%, var(--line));
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+
+  footer{
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  @media (max-width: 620px){
+    .scope{ grid-template-columns: 1fr; }
+    .scope-col + .scope-col{ border-left: none; border-top: 1px solid var(--line); }
+    .stats{ grid-template-columns: repeat(2, 1fr); }
+    .options{ grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .page{ animation: rise 0.5s ease-out; }
+    @keyframes rise{ from{ opacity: 0; transform: translateY(6px); } to{ opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="page">
+
+  <div class="head">
+    <div class="eyebrow">Ghi chú kiến trúc · để nhóm cùng xem lại</div>
+    <h1>Tách Viecoi thành hai repository theo phạm vi nghiệp vụ</h1>
+    <p class="dek">Thay vì tiếp tục chuyển từng phần việc V3 từ <code style="font-family:var(--mono)">develop</code> sang <code style="font-family:var(--mono)">master</code>, chúng ta ngừng merge và để hai nhánh trở thành hai repository riêng, chia theo đúng trách nhiệm mà mỗi bên đang thực hiện. Đặt tên là <code style="font-family:var(--mono)">viecoi-v3-api</code> thay vì <code style="font-family:var(--mono)">viecoi-api</code> một cách có chủ đích — nếu sau này cần viết lại cho V4, sẽ fork từ repo này thay vì làm lại từ đầu.</p>
+    <div class="meta-row">
+      <span>Repository: <b>viecoi</b> · <b>viecoi-v3-api</b></span>
+      <span>Nền tảng chung: <b>một database MySQL</b></span>
+      <span>Trạng thái: <b>đã thống nhất — bắt đầu triển khai</b></span>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">Cách chia phạm vi</h2>
+    <p class="section-note">Mỗi repository sở hữu một mảng riêng của sản phẩm. Không có gì ở đây là kỳ vọng tương lai — đây là cách hai nhánh đang hoạt động thực tế.</p>
+    <div class="scope">
+      <div class="scope-col">
+        <span class="scope-tag tag-teal">Nguồn dữ liệu chuẩn</span>
+        <h3>viecoi</h3>
+        <ul>
+          <li>Toàn bộ migration database — nơi duy nhất quản lý schema</li>
+          <li>Cron job</li>
+          <li>API V2 cho các tính năng Employer</li>
+          <li>Các trang React webapp dành cho Employer</li>
+          <li>Tiếp tục dùng lớp service hiện có</li>
+        </ul>
+      </div>
+      <div class="scope-col">
+        <span class="scope-tag tag-amber">Phạm vi mới</span>
+        <h3>viecoi-v3-api</h3>
+        <ul>
+          <li>Chỉ API V3</li>
+          <li>Chỉ render các trang dành cho Guest và Jobseeker</li>
+          <li>Service viết hoàn toàn mới — không tái sử dụng lớp service hiện có của viecoi</li>
+          <li>Ngoại lệ bắt buộc: phần bootstrap cho Auth, session và layout-shell vẫn dùng chung</li>
+        </ul>
+      </div>
+      <div class="seam">đọc/ghi trên cùng một database vật lý — không tách schema riêng, không có read replica</div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Những gì code xác nhận</h2>
+    <p class="section-note">Đo trực tiếp trên hai nhánh, truy theo từng service class mà 18 controller V3 thực sự import — không phải số ước lượng.</p>
+    <div class="stats">
+      <div class="stat">
+        <span class="n good">74%</span>
+        <span class="l">trong 65 service class mà V3 import chỉ tồn tại ở <b style="font-family:var(--mono);font-weight:500;color:var(--ink)">develop</b> — thực sự mới, không tái sử dụng</span>
+      </div>
+      <div class="stat">
+        <span class="n">26%</span>
+        <span class="l">dùng chung có chủ đích — phần bootstrap Auth, session và layout-shell tồn tại ở cả hai bên</span>
+      </div>
+      <div class="stat">
+        <span class="n risk">55%</span>
+        <span class="l">service của V3 bỏ qua Eloquent hoàn toàn, truy vấn trực tiếp bảng vật lý bằng SQL thô <span style="font-family:var(--mono)">DB::table()</span></span>
+      </div>
+      <div class="stat">
+        <span class="n">13</span>
+        <span class="l">model Eloquent thực sự dùng chung — đều là bảng tra cứu/định danh nhỏ, ít thay đổi</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="risk-block">
+      <h3 class="section-title">Rủi ro còn lại: nằm ở schema, không phải ở service</h3>
+      <p>Quy tắc "không tái sử dụng service" đúng như thực tế trong code. Nhưng nó không loại bỏ sự phụ thuộc — chỉ đẩy xuống một tầng sâu hơn, tới chính database. Vì <code>viecoi-v3-api</code> đọc cùng các bảng vật lý với <code>viecoi</code>, và hơn một nửa trong số đó dùng SQL thô thay vì Eloquent, một lần đổi tên hoặc xóa cột trong migration của <code>viecoi</code> có thể làm hỏng một trang của <code>viecoi-v3-api</code> mà <strong>không có lỗi compile, không có class dùng chung, và không có test nào ở cả hai repo</strong> bắt được.</p>
+      <p>13 model dùng chung là rủi ro nhỏ, có thể kiểm soát được. Sự phụ thuộc vào tên bảng/tên cột qua SQL thô mới là rủi ro thật — đây là kiểu lỗi khó nhận ra nhất trong hai loại.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Vì sao chọn rào chắn, không chỉ dừng ở quy trình</h2>
+    <p class="section-note">Cả hai đều tăng khả năng có người phát hiện ảnh hưởng trước khi lên production, nhưng chỉ một trong hai mở rộng được ra ngoài phạm vi "ai đó nhớ để kiểm tra". Đó là lý do Task 2 đặt rào chắn AI làm trọng tâm, không chỉ dừng ở quy tắc quy trình.</p>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-head">
+          <h3>Review thủ công</h3>
+          <span class="who">quy trình</span>
+        </div>
+        <p>Người thực hiện ticket migration trên <code style="font-family:var(--mono);font-size:0.9em">viecoi</code> có trách nhiệm kiểm tra ảnh hưởng lên <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code> trước khi merge.</p>
+        <div class="catch">Phụ thuộc vào việc nhớ, và vào việc developer đó có nghĩ đến mở một repository riêng khác hay không.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-head">
+          <h3>Rào chắn bằng AI</h3>
+          <span class="who">CLAUDE.md / AGENTS.md</span>
+        </div>
+        <p>Chỉ dẫn trong repository yêu cầu AI coding assistant đối chiếu các phụ thuộc SQL thô của <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code> mỗi khi có thay đổi migration trong <code style="font-family:var(--mono);font-size:0.9em">viecoi</code>.</p>
+        <div class="catch">Chỉ kích hoạt khi thay đổi được thực hiện qua assistant — im lặng với ai không dùng nó.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rec">
+      <h3 class="section-title">Phần Task 2 vẫn cần khép lại</h3>
+      <p>Rào chắn cộng với bộ test mới chỉ thực sự hiệu quả nếu có gì đó chạy các test đó trên schema <em>đề xuất</em> của <code style="font-family:var(--mono);font-size:0.9em">viecoi</code> trước khi migration được merge — không phải sau. Test bị mock sẽ không làm được điều này: chúng vẫn xanh dù schema có trôi đi đâu. Test cần chạy trên một database thật, đã migrate đến phiên bản mới nhất, và chính pipeline của <code style="font-family:var(--mono);font-size:0.9em">viecoi</code> cần là nơi kích hoạt bộ test của <code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code> chạy trên schema đó như một bước kiểm tra bắt buộc — nếu không, đây chỉ là phát hiện sau khi đã xảy ra, không phải ngăn chặn trước.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Kế hoạch triển khai</h2>
+    <p class="section-note">Hai luồng công việc, sẵn sàng bắt đầu.</p>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t1">Task 1</span>
+        <h3>Dựng nguồn chính thức, đúng phạm vi</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Đổi tên</span><br>Chuyển <code style="font-family:var(--mono)">develop</code> thành repository riêng: <b>viecoi-v3-api</b>.</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Cắt gọn</span><br><b>Rà soát repository mới và loại bỏ mọi thứ nằm ngoài phạm vi API V3</b> — controller, console command, và bất cứ gì khác không thuộc về những gì <code style="font-family:var(--mono)">viecoi-v3-api</code> thực sự sở hữu.</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Cấu hình</span><br><b>Thiết lập git và nginx trên cả hai môi trường.</b>
+            <div class="envs">
+              <span><b>wct-1</b> — môi trường chính</span>
+              <span><b>wct-2</b> — môi trường staging</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Domain</span><br><b>Cấu hình domain backend cho API V3 theo từng môi trường.</b>
+            <div class="envs">
+              <span><b>api.viecoi.vn</b> — chính</span>
+              <span><b>stgapi.viecoi.vn</b> — staging</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">DNS</span><br><b>Trỏ DNS trên Cloudflare cho cả hai domain về đúng IP server</b> — <code style="font-family:var(--mono)">api.viecoi.vn</code> → wct-1, <code style="font-family:var(--mono)">stgapi.viecoi.vn</code> → wct-2.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t2">Task 2</span>
+        <h3>Rào chắn và quy tắc cho rủi ro schema</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Hợp nhất</span><br><b>Chuyển toàn bộ migration và seeder thuộc về V3 từ <code style="font-family:var(--mono)">viecoi-v3-api</code> sang <code style="font-family:var(--mono)">viecoi</code></b>, để quyền sở hữu schema không có ngoại lệ — <code style="font-family:var(--mono)">viecoi-v3-api</code> không còn giữ migration nào của riêng nó.
+            <p class="note-inline">Cụ thể: 8 migration (ví dụ <code style="font-family:var(--mono);font-size:0.92em">add_company_search_filter_indexes</code>, <code style="font-family:var(--mono);font-size:0.92em">add_term_for_seo_to_tag_technique</code>) và 4 seeder (3 seeder class + 1 file CSV dữ liệu trong <code style="font-family:var(--mono);font-size:0.92em">database/seeders/data/VIO3788/</code>) hiện chỉ tồn tại ở <code style="font-family:var(--mono)">develop</code> — đây chính là những gì cần chuyển.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Soạn</span><br><b>CLAUDE.md / AGENTS.md cho viecoi</b> — mọi thay đổi schema phải đi kèm cập nhật test tương ứng trong <code style="font-family:var(--mono)">viecoi-v3-api</code>.<span class="must">phải tuân thủ nghiêm ngặt</span></div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">Xây dựng</span><br><b>Viết bộ test ban đầu cho toàn bộ 18 controller V3</b>, để rào chắn ở trên có cơ sở thực thi ngay từ đầu.
+            <p class="note-inline">Cần là feature test chạy trên database thật đã migrate, có assertion trên nội dung response thực tế — không phải unit test bị mock, vì loại đó vẫn xanh dù schema có trôi. Độ phủ theo nhánh logic quan trọng nhất ở các controller search/detail, nơi tập trung phần SQL thô rủi ro.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>viecoi · viecoi-v3-api — tóm tắt kiến trúc để nhóm cùng xem lại</footer>
+
+</div>
+
+</body></html>

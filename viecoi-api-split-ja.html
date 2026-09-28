@@ -1,0 +1,588 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Viecoi API 分割</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600&display=swap">
+
+<style>
+  :root{
+    --paper: #eef2f1;
+    --paper-raised: #ffffff;
+    --ink: #182225;
+    --ink-soft: #4b5a5c;
+    --line: #c9d3d1;
+    --line-soft: #dbe3e1;
+
+    --teal: #2d6a68;
+    --teal-soft: #dceae8;
+    --amber: #a5751f;
+    --amber-soft: #f3e6cd;
+    --risk: #a4402f;
+    --risk-soft: #f5ded8;
+    --good: #4c6b3f;
+    --good-soft: #e2ead9;
+
+    --serif: "Noto Serif JP", "IBM Plex Serif", Georgia, serif;
+    --sans: "Noto Sans JP", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #12181a;
+      --paper-raised: #182022;
+      --ink: #e9eeec;
+      --ink-soft: #a9b6b5;
+      --line: #2c3a3b;
+      --line-soft: #22302f;
+
+      --teal: #6db3af;
+      --teal-soft: #1c3230;
+      --amber: #d3a75c;
+      --amber-soft: #362a16;
+      --risk: #e0836f;
+      --risk-soft: #3a2420;
+      --good: #93b47f;
+      --good-soft: #232f1e;
+    }
+  }
+
+  :root[data-theme="dark"]{
+    --paper: #12181a;
+    --paper-raised: #182022;
+    --ink: #e9eeec;
+    --ink-soft: #a9b6b5;
+    --line: #2c3a3b;
+    --line-soft: #22302f;
+
+    --teal: #6db3af;
+    --teal-soft: #1c3230;
+    --amber: #d3a75c;
+    --amber-soft: #362a16;
+    --risk: #e0836f;
+    --risk-soft: #3a2420;
+    --good: #93b47f;
+    --good-soft: #232f1e;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-font-smoothing: antialiased; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.7;
+  }
+
+  .page{
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 4.5rem 1.75rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  .head{ display: flex; flex-direction: column; gap: 0.9rem; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 0.55rem; height: 0.55rem;
+    border-radius: 1px;
+    background: var(--teal);
+    transform: rotate(45deg);
+    flex: none;
+  }
+  h1{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+  }
+  .dek{
+    font-size: 1.02rem;
+    color: var(--ink-soft);
+    max-width: 34rem;
+    margin: 0;
+  }
+  .meta-row{
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .meta-row span b{ color: var(--ink); font-weight: 500; }
+
+  section{ display: flex; flex-direction: column; gap: 1.1rem; }
+  .section-title{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.24rem;
+    margin: 0;
+    letter-spacing: 0.005em;
+  }
+  .section-note{
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 40rem;
+  }
+
+  .scope{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper-raised);
+  }
+  .scope-col{
+    padding: 1.5rem 1.5rem 1.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .scope-col + .scope-col{ border-left: 1px solid var(--line); }
+  .scope-tag{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    width: fit-content;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+  }
+  .tag-teal{ background: var(--teal-soft); color: var(--teal); }
+  .tag-amber{ background: var(--amber-soft); color: var(--amber); }
+  .scope-col h3{
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+  }
+  .scope-col ul{
+    margin: 0; padding: 0;
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0.55rem;
+    font-size: 0.94rem;
+  }
+  .scope-col li{ padding-left: 1rem; position: relative; }
+  .scope-col li::before{
+    content: "–";
+    position: absolute; left: 0; color: var(--ink-soft);
+  }
+  .seam{
+    grid-column: 1 / -1;
+    padding: 0.7rem 1.5rem;
+    background: var(--line-soft);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .seam::before{ content: "⌁"; color: var(--risk); font-size: 0.9rem; }
+
+  .stats{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat{
+    background: var(--paper-raised);
+    padding: 1.2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .stat .n{
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat .n.good{ color: var(--good); }
+  .stat .n.risk{ color: var(--risk); }
+  .stat .l{
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .risk-block{
+    border: 1px solid color-mix(in srgb, var(--risk) 35%, var(--line));
+    background: var(--risk-soft);
+    border-radius: 6px;
+    padding: 1.5rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .risk-block .section-title{ color: var(--risk); font-size: 1.12rem; }
+  .risk-block p{ margin: 0; font-size: 0.96rem; }
+  .risk-block code{
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--paper-raised);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--line-soft);
+  }
+
+  .options{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .opt{
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    padding: 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .opt-head{ display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+  .opt-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin: 0;
+  }
+  .opt-head .who{
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .opt p{ margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+  .opt .catch{
+    font-size: 0.86rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .opt .catch::before{ content: "!"; font-family: var(--mono); color: var(--risk); font-weight: 500; }
+
+  .rec{
+    border-left: 3px solid var(--teal);
+    padding: 0.2rem 0 0.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rec .section-title{ font-size: 1.08rem; }
+  .rec p{ margin: 0; font-size: 0.97rem; }
+
+  .steps{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .step{
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    align-items: flex-start;
+  }
+  .step .box{
+    flex: none;
+    width: 1.05rem; height: 1.05rem;
+    margin-top: 0.15rem;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 3px;
+  }
+  .step .tx{ font-size: 0.95rem; }
+  .step .tx b{ font-weight: 600; }
+  .step .tag{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .task-group{
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+  }
+  .task-head{ display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+  .task-num{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 3px;
+    flex: none;
+  }
+  .task-num.t1{ background: var(--amber-soft); color: var(--amber); }
+  .task-num.t2{ background: var(--risk-soft); color: var(--risk); }
+  .task-head h3{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin: 0;
+  }
+  .task-group .steps{ border-top: 1px solid var(--line-soft); }
+  .envs{
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+  .envs b{ color: var(--ink); font-weight: 500; }
+  .note-inline{
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0.15rem 0 0;
+  }
+  .must{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    color: var(--risk);
+    border: 1px solid color-mix(in srgb, var(--risk) 45%, var(--line));
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+
+  footer{
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  @media (max-width: 620px){
+    .scope{ grid-template-columns: 1fr; }
+    .scope-col + .scope-col{ border-left: none; border-top: 1px solid var(--line); }
+    .stats{ grid-template-columns: repeat(2, 1fr); }
+    .options{ grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .page{ animation: rise 0.5s ease-out; }
+    @keyframes rise{ from{ opacity: 0; transform: translateY(6px); } to{ opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="page">
+
+  <div class="head">
+    <div class="eyebrow">アーキテクチャノート · チームレビュー用</div>
+    <h1>Viecoiをビジネス領域ごとに2つのリポジトリへ分割する</h1>
+    <p class="dek">V3の実装を <code style="font-family:var(--mono)">develop</code> から <code style="font-family:var(--mono)">master</code> へコミット単位で移植し続けるのをやめ、2つのブランチをそれぞれ独立したリポジトリにする。分割の境界は、すでに実態として存在している責務の違いに沿わせる。<code style="font-family:var(--mono)">viecoi-api</code> ではなく <code style="font-family:var(--mono)">viecoi-v3-api</code> と名付けたのは意図的な選択 — 将来V4の刷新が必要になった際、ゼロから作るのではなくこのリポジトリからフォークできるようにするため。</p>
+    <div class="meta-row">
+      <span>リポジトリ: <b>viecoi</b> · <b>viecoi-v3-api</b></span>
+      <span>共有基盤: <b>MySQLデータベース1つ</b></span>
+      <span>状態: <b>承認済み — 実行開始</b></span>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">領域の分け方</h2>
+    <p class="section-note">各リポジトリはプロダクトの明確に異なる部分を担う。これは将来の理想像ではなく、2つのブランチが今すでにそう振る舞っている実態そのもの。</p>
+    <div class="scope">
+      <div class="scope-col">
+        <span class="scope-tag tag-teal">Source of Truth</span>
+        <h3>viecoi</h3>
+        <ul>
+          <li>すべてのデータベースマイグレーション — スキーマの唯一の管理元</li>
+          <li>Cronジョブ</li>
+          <li>Employer向け機能のV2 API</li>
+          <li>Employer向けReact webappページ</li>
+          <li>既存の確立されたサービス層を引き続き使用</li>
+        </ul>
+      </div>
+      <div class="scope-col">
+        <span class="scope-tag tag-amber">新しい領域</span>
+        <h3>viecoi-v3-api</h3>
+        <ul>
+          <li>V3 APIのみ</li>
+          <li>GuestとJobseeker向けページのレンダリングに限定</li>
+          <li>サービスはすべて新規実装 — viecoiの既存サービス層は再利用しない</li>
+          <li>やむを得ない例外: Auth、session、layout-shellのbootstrap部分は共有を継続</li>
+        </ul>
+      </div>
+      <div class="seam">同じ物理データベースに対して読み書きする — 別スキーマなし、read replicaなし</div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">コードが裏付けている事実</h2>
+    <p class="section-note">2つのブランチを実際に比較し、18個のV3コントローラーが実際にimportしている全サービスクラスを追跡した結果 — 推測ではない。</p>
+    <div class="stats">
+      <div class="stat">
+        <span class="n good">74%</span>
+        <span class="l">V3がimportする65個のサービスクラスのうち、<b style="font-family:var(--mono);font-weight:500;color:var(--ink)">develop</b>にしか存在しない — 本当に新規で、再利用ではない</span>
+      </div>
+      <div class="stat">
+        <span class="n">26%</span>
+        <span class="l">意図的に共有されている — Auth、session、layout-shellのbootstrapは両側に存在</span>
+      </div>
+      <div class="stat">
+        <span class="n risk">55%</span>
+        <span class="l">V3のサービスはEloquentを一切使わず、生SQLの<span style="font-family:var(--mono)">DB::table()</span>で物理テーブルに直接クエリしている</span>
+      </div>
+      <div class="stat">
+        <span class="n">13</span>
+        <span class="l">実際に共有されているEloquentモデル — 変更頻度の低い小さな参照・識別用テーブルのみ</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="risk-block">
+      <h3 class="section-title">残るリスク: サービスではなくスキーマ</h3>
+      <p>「サービスを再利用しない」という原則はコード上で確かに守られている。しかしそれは結合を取り除いているわけではなく、一段下の層 — データベース自体 — に移しているだけ。<code>viecoi-v3-api</code>は<code>viecoi</code>と同じ物理テーブルを読み、その半分以上がEloquentではなく生SQLで行われているため、<code>viecoi</code>のマイグレーションでのカラムのリネームや削除は、<strong>コンパイルエラーもなく、共有クラスもなく、どちらのリポジトリにもテストもない</strong>まま<code>viecoi-v3-api</code>のページを壊しうる。</p>
+      <p>共有されている13個のモデルは小さく制御可能なリスクにすぎない。テーブル名・カラム名への生SQLの依存こそが本当のリスクであり、2つのうちで最も見えにくい破損モードだ。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">なぜ「ガードレール」が必要で、プロセスルールだけでは足りないのか</h2>
+    <p class="section-note">どちらも、リリース前に誰かが影響に気づく可能性を上げる。しかし片方だけが「誰かが覚えていること」の限界を超えてスケールする。だからTask 2は、プロセスルール単独ではなくガードレールを中心に据える。</p>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-head">
+          <h3>手動レビュー</h3>
+          <span class="who">プロセス</span>
+        </div>
+        <p><code style="font-family:var(--mono);font-size:0.9em">viecoi</code>のマイグレーションチケットを実装する担当者が、マージ前に<code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code>への影響を確認する責任を持つ。</p>
+        <div class="catch">記憶に依存し、さらに担当者がそもそも別リポジトリを開こうと思うかどうかにも依存する。</div>
+      </div>
+      <div class="opt">
+        <div class="opt-head">
+          <h3>AIガードレール</h3>
+          <span class="who">CLAUDE.md / AGENTS.md</span>
+        </div>
+        <p>リポジトリの指示で、AIコーディングアシスタントが<code style="font-family:var(--mono);font-size:0.9em">viecoi</code>のマイグレーションに触れるたびに<code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code>の生SQL依存を確認するようにする。</p>
+        <div class="catch">アシスタント経由の変更にしか発火しない — 使わない人には何も知らせない。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rec">
+      <h3 class="section-title">Task 2がまだ閉じる必要があるゲート</h3>
+      <p>ガードレールと新しいテストスイートが本当に機能するのは、マイグレーションがマージされる<em>前</em>に、<code style="font-family:var(--mono);font-size:0.9em">viecoi</code>の<em>変更予定の</em>スキーマに対してそのテストが実際に実行された場合のみ — マージ後では意味がない。モックされたテストではこれは実現できない。スキーマがどれだけずれても常にグリーンのままだからだ。テストは実際にマイグレーション済みの本物のデータベースに対して実行される必要があり、そのスキーマに対して<code style="font-family:var(--mono);font-size:0.9em">viecoi-v3-api</code>のテストスイートを必須チェックとして走らせるのは<code style="font-family:var(--mono);font-size:0.9em">viecoi</code>自身のパイプラインでなければならない — そうでなければこれは事後の検知にすぎず、事前の防止にはならない。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">実行計画</h2>
+    <p class="section-note">2つの作業ストリーム、着手可能。</p>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t1">Task 1</span>
+        <h3>正式なソースを、正しい範囲で立ち上げる</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">リネーム</span><br><code style="font-family:var(--mono)">develop</code>を独立したリポジトリへ切り替える: <b>viecoi-v3-api</b>。</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">整理</span><br><b>新しいリポジトリを走査し、V3 APIの範囲外にあるものをすべて削除する</b> — コントローラー、コンソールコマンド、その他<code style="font-family:var(--mono)">viecoi-v3-api</code>が実際に所有していないものすべて。</div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">環境構築</span><br><b>両方の環境でgitとnginxを設定する。</b>
+            <div class="envs">
+              <span><b>wct-1</b> — 本番環境</span>
+              <span><b>wct-2</b> — ステージング環境</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">ドメイン</span><br><b>環境ごとにV3 APIバックエンドのドメインを設定する。</b>
+            <div class="envs">
+              <span><b>api.viecoi.vn</b> — 本番</span>
+              <span><b>stgapi.viecoi.vn</b> — ステージング</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">DNS</span><br><b>Cloudflare側で両ドメインのDNSを正しいサーバーIPへ向ける</b> — <code style="font-family:var(--mono)">api.viecoi.vn</code> → wct-1、<code style="font-family:var(--mono)">stgapi.viecoi.vn</code> → wct-2。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-group">
+      <div class="task-head">
+        <span class="task-num t2">Task 2</span>
+        <h3>スキーマリスクに対するガードレールとルール</h3>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">統合</span><br><b>V3が所有するマイグレーションとseederをすべて<code style="font-family:var(--mono)">viecoi-v3-api</code>から<code style="font-family:var(--mono)">viecoi</code>へ移す</b>ことで、スキーマの所有権に例外をなくす — <code style="font-family:var(--mono)">viecoi-v3-api</code>には自前のマイグレーションが1つも残らない状態にする。
+            <p class="note-inline">具体的には: 8個のマイグレーション（例: <code style="font-family:var(--mono);font-size:0.92em">add_company_search_filter_indexes</code>、<code style="font-family:var(--mono);font-size:0.92em">add_term_for_seo_to_tag_technique</code>）と4個のseeder（3個のseederクラス + <code style="font-family:var(--mono);font-size:0.92em">database/seeders/data/VIO3788/</code>配下のCSVフィクスチャ1個）が現在<code style="font-family:var(--mono)">develop</code>にしか存在しない — これらが実際に移すべき対象。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">起草</span><br><b>viecoi用のCLAUDE.md / AGENTS.md</b> — スキーマの変更には必ず<code style="font-family:var(--mono)">viecoi-v3-api</code>側の対応するテスト更新を伴わせる。<span class="must">厳格な遵守が必須</span></div>
+        </div>
+        <div class="step">
+          <div class="box"></div>
+          <div class="tx"><span class="tag">構築</span><br><b>18個のV3コントローラーすべてをカバーする最初のテストスイートを書く</b> — 上のガードレールが初日から実効性を持つように。
+            <p class="note-inline">実際にマイグレーション済みのデータベースに対する、レスポンス内容への具体的なアサーションを含むfeatureレベルのテストである必要がある — モックされたunit testではスキーマのずれに関わらずグリーンのままになってしまう。ブランチカバレッジが最も重要なのは、生SQLのリスクが集中しているsearch/detail系のコントローラー。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>viecoi · viecoi-v3-api — チームレビュー用アーキテクチャサマリー</footer>
+
+</div>
+
+</body></html>

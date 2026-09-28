@@ -1,0 +1,132 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Viecoi 不具合報告</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#faf9f7; --surface:#ffffff; --border:#e4e0d8; --text:#1f1c16; --text-dim:#6b6355;
+  --accent:#b5502e; --accent-dim:#e9d8cf;
+  --red:#b0392b; --red-bg:#fbe9e6;
+  --amber:#95651a; --amber-bg:#fbf0da;
+  --green:#3a6b3e; --green-bg:#e6f0e3;
+  --gray:#6b6355; --gray-bg:#eeece6;
+  --blue:#2f5a8a; --blue-bg:#e6eef7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#181612; --surface:#221f1a; --border:#3a352c; --text:#f1ede4; --text-dim:#b3ab99;
+    --accent:#e08a5f; --accent-dim:#4a3226;
+    --red:#e5867a; --red-bg:#3a2320;
+    --amber:#e0b360; --amber-bg:#3a2e17;
+    --green:#8fc496; --green-bg:#203524;
+    --gray:#b3ab99; --gray-bg:#2c2922;
+    --blue:#8fb4de; --blue-bg:#1e2c3d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181612; --surface:#221f1a; --border:#3a352c; --text:#f1ede4; --text-dim:#b3ab99;
+  --accent:#e08a5f; --accent-dim:#4a3226;
+  --red:#e5867a; --red-bg:#3a2320;
+  --amber:#e0b360; --amber-bg:#3a2e17;
+  --green:#8fc496; --green-bg:#203524;
+  --gray:#b3ab99; --gray-bg:#2c2922;
+  --blue:#8fb4de; --blue-bg:#1e2c3d;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);margin:0;font-family:"Noto Sans JP",system-ui,sans-serif;padding-block:40px;}
+.wrap{max-width:920px;margin:0 auto;padding-inline:20px;}
+h1{font-family:"Shippori Mincho",serif;font-size:clamp(26px,5vw,36px);margin:0 0 6px;text-wrap:balance;}
+.sub{color:var(--text-dim);font-size:14.5px;margin:0 0 28px;line-height:1.7;}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12.5px;color:var(--text-dim);}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:36px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.stat .n{font-family:"Shippori Mincho",serif;font-size:26px;font-variant-numeric:tabular-nums;}
+.stat .l{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.stat.red .n{color:var(--red)}
+.stat.amber .n{color:var(--amber)}
+.stat.green .n{color:var(--green)}
+.stat.gray .n{color:var(--gray)}
+section{margin-bottom:36px;}
+h2{font-family:"Shippori Mincho",serif;font-size:19px;border-bottom:1px solid var(--border);padding-bottom:8px;margin:0 0 14px;}
+.item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px;}
+.item-title{font-weight:600;font-size:14.5px;line-height:1.6;}
+.badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;white-space:nowrap;}
+.badge.red{color:var(--red);background:var(--red-bg);}
+.badge.amber{color:var(--amber);background:var(--amber-bg);}
+.badge.green{color:var(--green);background:var(--green-bg);}
+.badge.gray{color:var(--gray);background:var(--gray-bg);}
+.badge.blue{color:var(--blue);background:var(--blue-bg);}
+.item-ev{font-size:13px;color:var(--text-dim);line-height:1.75;}
+.item-ev code{background:var(--accent-dim);color:var(--accent);padding:1px 5px;border-radius:4px;font-size:12px;}
+footer{color:var(--text-dim);font-size:12.5px;border-top:1px solid var(--border);padding-top:18px;margin-top:40px;line-height:1.7;}
+</style>
+
+<div class="wrap">
+  <h1>Viecoi.vn Next.js 不具合まとめ</h1>
+  <p class="sub">2つのリポジトリ（フロントエンド Next.js、バックエンド Laravel V3 API）を対象にコードを読み取り専用で調査し、Notion QA記録に残る未修正の不具合と照合した結果です。コードの変更は行っていません。</p>
+  <div class="meta">
+    <span class="chip">更新日: 2026年9月24日</span>
+    <span class="chip">出典: QA Notion「Tổng hợp Lỗi https nextjs viecoi vn」</span>
+    <span class="chip">全25件</span>
+  </div>
+
+  <div class="summary">
+    <div class="stat red"><div class="n">12</div><div class="l">未修正</div></div>
+    <div class="stat amber"><div class="n">2</div><div class="l">部分修正</div></div>
+    <div class="stat green"><div class="n">5</div><div class="l">修正済みの可能性</div></div>
+    <div class="stat gray"><div class="n">3</div><div class="l">不明・要再現確認</div></div>
+  </div>
+
+  <section>
+    <h2>ナビゲーション / ルーティング</h2>
+    <div class="item"><div class="item-head"><div class="item-title">1. EMPログイン状態による「求人掲載」「登録」ボタンの遷移先誤り</div><span class="badge gray">不明</span></div><div class="item-ev">該当するコンポーネントが特定できず。<code>/employer/postjob</code> ルート自体がNext.jsリポジトリに存在しない。再現URLの提供が必要。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">2. 言語切替（EN/JA）でTop pageへ自動リダイレクトされる</div><span class="badge green">修正済みの可能性</span></div><div class="item-ev">FE側の言語切替コンポーネントは全て現在のパス/クエリを保持する実装。バックエンド <code>/api/v3/layout/core</code> がトップページURLを返す場合のみ発生し得る。</div></div>
+  </section>
+
+  <section>
+    <h2>採用ハンドブック（Cẩm Nang）</h2>
+    <div class="item"><div class="item-head"><div class="item-title">3. 記事サムネイルのカテゴリタブリンクが404</div><span class="badge red">未修正</span></div><div class="item-ev"><code>ArticleMostViewedPage.tsx:241-246</code> が旧URLパターン <code>danh-muc-*.html</code> を直接組み立てたまま、安全なヘルパーへの移行が未実施。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">4. 「もっと見る」/パンくずのカテゴリリンクが404</div><span class="badge amber">部分修正</span></div><div class="item-ev">求職者側のみ修正済み。<b>雇用主側（cam-nang-tuyen-dung）— 報告例そのもの — は未修正のまま。</b></div></div>
+    <div class="item"><div class="item-head"><div class="item-title">5. ハンドブックページのヘッダー下の余白不具合</div><span class="badge green">修正済みの可能性</span></div><div class="item-ev">2026年9月15日まで専用CSS修正が継続的に実施(VIO-3581/4006/4017)。目視確認は未実施。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">6. 雇用主側パンくずの余白・フォント不具合</div><span class="badge green">修正済みの可能性</span></div><div class="item-ev">専用クラス <code>article-page--employer-category</code> のCSSが追加済み（VIO-4006）。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">7. danh-muc-cb.html のレイアウトがstagingと異なる、画像誤り、小カテゴリ一覧不具合</div><span class="badge red">未修正</span></div><div class="item-ev">ハブページ用のヒーロー画像ロジックが存在しない。一覧は小カテゴリでグループ化されないフラットリスト表示。コミット履歴からこのページの不具合を回避する対応が行われたことが判明。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">8. 記事本文の欠落（該当URL2件）</div><span class="badge gray">不明 — BE/CMS起因の可能性</span></div><div class="item-ev">FE側は汎用レンダリングでスラッグ別の分岐なし。データソース側の <code>article.description</code> が空である可能性が高い。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">9. 記事サムネイル欠落（自動生成記事）</div><span class="badge red">未修正</span></div><div class="item-ev">FE側にフォールバック用サムネイル機構が存在しない。旧機構は意図的に削除済み（コミット 05aec943）で代替未実装。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">10. フッターSEO文にアンダーラインリンクが欠落</div><span class="badge red">未修正</span></div><div class="item-ev">JS/EMP両フッターとも装飾なしのプレーンテキストで表示。Next.js移行時にリンクが失われた。</div></div>
+  </section>
+
+  <section>
+    <h2>求人検索 / 求人詳細</h2>
+    <div class="item"><div class="item-head"><div class="item-title">11. パンくずが「/」で不自然に改行・省略される</div><span class="badge green">修正済みの可能性</span></div><div class="item-ev"><code>flex-wrap</code> を使用し幅に応じて折返す実装。省略表示はモバイル限定の意図的な仕様。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">12. 検索ボックスがパンくずの下に隠れる</div><span class="badge green">修正済みの可能性</span></div><div class="item-ev">デスクトップ版パンくずは1024px未満で非表示となり、モバイル専用の重ならないレイアウトに切替済み。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">13. 複数条件検索時に求人一覧が左寄りにずれる</div><span class="badge gray">不明</span></div><div class="item-ev">絞込件数に依存するレイアウトロジックは未発見。多条件URLでの手動確認が必要。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">14. 「認証済み企業」チェックマークの不整合</div><span class="badge red">FE/BE共に未修正</span></div><div class="item-ev"><b>FE：</b>企業詳細ページの求人カードは <code>Boolean(job.employer)</code>（常にtrue→誤表示）を使用。関連記事の求人カードは <code>isVerified</code> 未設定（バッジ非表示）。<b>BE（根本原因）：</b>3つのエンドポイントがそれぞれ異なる形式でこのフィールドを返却、企業詳細エンドポイントでは当該フィールド自体が欠落。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">15. 「おすすめ求人」ウィジェットで誤った「急募」バッジ表示</div><span class="badge red">未修正</span></div><div class="item-ev"><code>ArticleSuggestedJobsClient.tsx</code> で無条件にバッジを表示。該当データ型に緊急度フィールド自体が存在しない。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">16. ブロック済み雇用主の求人が検索結果に残存</div><span class="badge blue">バックエンドのみの不具合</span></div><div class="item-ev">検索クエリは <code>job_status</code>/<code>status</code> のみで絞込み、雇用主アカウントの状態を確認していない。FE側での修正は不可。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">17. ITカテゴリの自動リンクが it.viecoi.vn ではなく旧URLを指す</div><span class="badge red">FE/BE両方で未修正</span></div><div class="item-ev"><b>BE：</b>本番使用中のリンク生成関数は旧パターン <code>/tim-viec/danh-muc-...</code> のまま。サブドメイン対応版は存在するが呼び出されていないデッドコード。<b>FE：</b>カテゴリボックスの静的ビルダーも旧パターンをハードコード。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">18. 自動リンク機能がbetaシートと広範囲に不一致</div><span class="badge red">未修正 — 主にバックエンド起因</span></div><div class="item-ev">FEは基本的にBEのauto-links APIレスポンスをそのまま表示。BEのリンク生成関数が旧パターンのまま。追加でFE固有の問題も1件：BEレスポンスが空の際のフォールバックにカテゴリ/分野/在宅/ハイブリッド用のロジックが欠落。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">19. 「人気分野」ボックスに誤ったカテゴリが表示 <i>（後回し）</i></div><span class="badge gray">深堀り未実施</span></div><div class="item-ev">BE側の <code>functionalRoles</code> へのデータ混入の可能性。QA記録で「improve later」と分類済み。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">20. 在宅求人検索で地域選択時にフィルタが失われる <i>（後回し）</i></div><span class="badge gray">現象は再現するが仕組みが異なる</span></div><div class="item-ev">地域選択後に在宅タブが消えるのではなく、在宅選択中は地域ピッカー自体が無効化される実装。実質的な制約は同じだが仕組みが異なる。</div></div>
+  </section>
+
+  <section>
+    <h2>給与・求人詳細 & ハンドブックEMP（バックエンド — 新規判明）</h2>
+    <div class="item"><div class="item-head"><div class="item-title">21. 「応相談」給与が詳細画面で「0」と表示される</div><span class="badge red">未修正</span></div><div class="item-ev"><code>JobDetailCoreService.php::compensation()</code> がmax=0の際に <code>salary_type</code> を確認していない。検索一覧側は正しく共通ヘルパー <code>compact_salary()</code> を使用しているが、詳細APIは未対応。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">22. ハンドブックEMPランディングページがバックエンド側で404</div><span class="badge red">未修正</span></div><div class="item-ev"><code>ArticleCategoryResolutionService.php::normalizeCategorySlug()</code> はスラッグに「/」が続く場合のみ処理対象とし、末尾なしの<code>cam-nang-tuyen-dung</code>自体はどのリゾルバーにも一致しない。</div></div>
+    <div class="item"><div class="item-head"><div class="item-title">23. 管理者編集がGemini説明文に反映されず、顧客メールを削除できない</div><span class="badge red">未修正 — 根本原因は古いキャッシュ</span></div><div class="item-ev">公開ページはGemini/管理者編集済みの内容を優先表示する実装自体は正しい。しかし<b>同期の仕組みが存在せず</b>：<code>JobObserver::updated()</code> はRedisキャッシュのみ処理し、Geminiパイプラインの再実行をトリガーしないため、生の説明文編集（メール削除等）が公開ページに一切反映されない。メール削除関数 <code>removeCharactersByRule()</code> はデッドコードで一度も呼び出されていない。</div></div>
+  </section>
+
+  <section>
+    <h2>SEO / メタ情報</h2>
+    <div class="item"><div class="item-head"><div class="item-title">24. 求人検索/レジュメ/雇用主ページのメタタイトル・ディスクリプションがbetaシートと不一致</div><span class="badge amber">部分修正 / 古いデータの可能性</span></div><div class="item-ev">2026年版シーダー付きの一元化SEOサービスは既に存在。コード内に「33,855」等のハードコード文字列は発見されず — 件数は1時間TTLのRedisキャッシュで動的生成。古いキャッシュ/DBデータが原因である可能性が高く、コード自体の不具合ではない可能性。</div></div>
+  </section>
+
+  <footer>
+    本レポートはコードの読み取り専用調査であり、コードの変更は一切行っていません。詳細は <code>viecoi_nextjs</code> リポジトリ内 <code>docs/notion/issue/2026-09-bug-tracker-status.md</code> を参照してください。
+  </footer>
+</div>
+
+</body></html>
