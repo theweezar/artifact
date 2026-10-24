@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Viecoi Cache Framework — Current State</title>
+<meta name="description" content="How job-search and layout caching works today under CacheManager: TTLs, stale-while-revalidate, warm cache, and invalidation.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F6F8FC; --surface:#FFFFFF; --border:#D7DEEA; --border-hi:#B3BFD1;
+  --navy:#0D1521; --navy-mid:#16233A; --text:#1A2638; --muted:#5A6E87; --faint:#8FA0B4;
+  --blue:#1D4ED8; --blue-soft:#EBF0FB; --blue-mid:#DBEAFE;
+  --green:#15803D; --green-soft:#EFFCF4; --green-mid:#D3F3E1;
+  --amber:#B45309; --amber-soft:#FFFBEB; --amber-mid:#FDEBC8;
+  --red:#B91C1C; --red-soft:#FEF2F2; --red-mid:#FBDADA;
+  --purple:#6D28D9; --purple-soft:#F5F0FE;
+  --mono:"SF Mono","JetBrains Mono","Fira Mono",ui-monospace,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+
+.shell{display:flex;min-height:100vh}
+.nav{width:230px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--navy);padding:0 0 24px}
+.nav-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+.nav-brand-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.38)}
+.nav-brand-title{font-size:14px;font-weight:700;color:#E2EAF8;line-height:1.35;margin-top:4px}
+.nav-brand-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:6px}
+.nav a{display:block;padding:7px 20px;font-size:12.5px;color:rgba(226,234,248,.72);text-decoration:none;border-left:2px solid transparent}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav a.active{color:#fff;border-left-color:var(--blue-mid);background:rgba(255,255,255,.06)}
+.nav-section-label{padding:16px 20px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+
+.main{flex:1;min-width:0;padding:40px 48px 100px;max-width:1040px}
+h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+h2{font-size:20px;font-weight:800;margin:48px 0 14px;padding-top:4px;border-top:1px solid var(--border);padding-top:20px}
+section:first-of-type h2{border-top:none;padding-top:0}
+h3{font-size:15px;font-weight:700;margin:22px 0 8px}
+p{color:var(--text);margin:0 0 12px;max-width:72ch}
+.lede{font-size:15.5px;color:var(--muted);max-width:68ch;margin-top:10px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;text-transform:uppercase;white-space:nowrap}
+.b-verified{background:var(--green-soft);color:var(--green);border:1px solid var(--green-mid)}
+.b-assume{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber-mid)}
+.b-stale{background:var(--red-soft);color:var(--red);border:1px solid var(--red-mid)}
+.b-open{background:var(--purple-soft);color:var(--purple);border:1px solid #DDD0FA}
+
+.callout{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:14px 16px;margin:14px 0;display:flex;gap:10px;align-items:flex-start}
+.callout.verified{border-color:var(--green-mid);background:var(--green-soft)}
+.callout.assume{border-color:var(--amber-mid);background:var(--amber-soft)}
+.callout.stale{border-color:var(--red-mid);background:var(--red-soft)}
+.callout .dot{flex-shrink:0;margin-top:3px;font-size:14px}
+.callout p{margin:0;font-size:13.5px;color:var(--text)}
+.callout strong{font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:16px 0}
+.card.mermaid-card{padding:18px 10px 6px}
+.card h3{margin-top:0}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 4px}
+th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:2px solid var(--border-hi);background:var(--blue-soft)}
+td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.tbl-wrap table{margin:0}
+.tbl-wrap th:first-child,.tbl-wrap td:first-child{padding-left:14px}
+code{font-family:var(--mono);font-size:.88em;background:var(--blue-soft);color:var(--navy-mid);padding:1.5px 5px;border-radius:4px}
+td code, .pill{white-space:nowrap}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;background:#EEF1F8;border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.yes{color:var(--green);font-weight:700}
+.no{color:var(--faint)}
+.gated{color:var(--amber);font-weight:600}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0 20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi .n{font-size:21px;font-weight:800;color:var(--navy-mid)}
+.kpi .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+.mermaid{display:flex;justify-content:center}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--faint)}
+
+@media (max-width:860px){
+  .shell{flex-direction:column}
+  .nav{position:static;width:100%;height:auto}
+  .main{padding:28px 18px 60px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="nav-brand-label">VIO-4146 · VIO-3416</div>
+      <div class="nav-brand-title">Cache Framework<br>Current State</div>
+      <div class="nav-brand-sub">viecoi-v3-api + viecoi_nextjs</div>
+    </div>
+    <a href="#overview">Overview</a>
+    <a href="#lifecycle">Request Lifecycle</a>
+    <div class="nav-section-label">Reference</div>
+    <a href="#ttl-table">Cache TTL Table</a>
+    <a href="#warm-cache">Warm Cache Schedule</a>
+    <a href="#invalidation">Invalidation / Clear</a>
+    <div class="nav-section-label">Detail</div>
+    <a href="#key-shape">Cache Key Shape</a>
+    <a href="#layout-scope">Layout (public-layout)</a>
+    <a href="#frontend">Cache Tools UI</a>
+    <a href="#open-items">Open Items & Caveats</a>
+  </nav>
+
+  <main class="main">
+
+    <section id="overview">
+      <h1>How Viecoi's Cache Framework Works Today</h1>
+      <p class="lede">Job-search and site-layout responses are cached through one shared system, <code>CacheManager</code>, instead of each feature rolling its own caching logic. This page explains what gets cached, for how long, how it refreshes itself automatically, and how staff can clear it — in plain English, backed by what was actually found reading the code on <strong>2026-10-24</strong>.</p>
+
+      <div class="kpi-row">
+        <div class="kpi"><div class="n">12</div><div class="l">cache entries registered</div></div>
+        <div class="kpi"><div class="n">7</div><div class="l">entries with auto-refresh (SWR)</div></div>
+        <div class="kpi"><div class="n">1×/day</div><div class="l">warm-cache run, 04:00 Vietnam time</div></div>
+        <div class="kpi"><div class="n">2</div><div class="l">entries always allowed to be cleared</div></div>
+      </div>
+
+      <div class="card">
+        <h3>The strategy in one paragraph</h3>
+        <p>Most job-search pages are computed once and then served from Redis for a fixed window (a <strong>TTL</strong>). Rather than letting a cached page suddenly expire and forcing one unlucky visitor to wait for a slow recompute, the busiest entries use <strong>stale-while-revalidate (SWR)</strong>: once the TTL passes, the <em>old</em> answer keeps being served instantly while a fresh one is quietly recomputed behind the scenes. On top of that, a nightly job proactively <strong>warms</strong> a curated list of popular URLs at 4am, before the next day's traffic arrives, so visitors are less likely to ever hit a slow first-computation. Staff can also force a cache entry or an entire category to be cleared on demand through an internal clear endpoint.</p>
+      </div>
+
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified</span>&nbsp; All claims in the sections below were checked directly against the current working tree of <code>viecoi-v3-api</code> and <code>viecoi_nextjs</code> on 2026-10-24, not just the source markdown doc. Anything that could not be confirmed, or that the code contradicts, is called out explicitly with an amber or red badge.</p></div>
+    </section>
+
+    <section id="lifecycle">
+      <h2>Request Lifecycle — Compute, Cache, Serve, Refresh, Expire</h2>
+      <p>Every cache read goes through <code>CacheManager::remember()</code> (or <code>rememberMany()</code> for batch id lookups — see note below). It stores each cached value as <strong>two Redis keys</strong>: the data itself, and a short-lived "fresh" marker. Whether the marker is still alive is what decides if a request gets a fast fresh hit, a fast-but-stale hit, or a cold compute.</p>
+
+      <div class="card mermaid-card">
+<pre class="mermaid">
+flowchart TD
+    A["Request for a cached entry\n(e.g. job-search.results)"] --> B{"fresh marker\npresent?"}
+    B -- "yes" --> C["✅ FRESH HIT\nreturn cached value immediately"]
+    B -- "no" --> D{"data key\nstill present?"}
+    D -- "yes (expired fresh marker,\nhard TTL not yet reached)" --> E["🟡 STALE HIT\nreturn the OLD value immediately"]
+    E --> F{"revalidation\nalready running?\n(NX lock, max 300s)"}
+    F -- "no" --> G["dispatch RevalidateCacheJob\n(queue, or inline if QUEUE_CONNECTION=sync)"]
+    G --> H["recompute via the entry's\nComputeResolver"]
+    H --> I["write data key + reset\nfresh marker"]
+    F -- "yes" --> J["skip — another\nrequest is already\nrevalidating"]
+    D -- "no (hard TTL expired\nor never cached)" --> K["🔴 MISS\nacquire lock, compute\nSYNCHRONOUSLY"]
+    K --> L["caller waits for the\ncompute to finish"]
+    L --> I
+    C --> M(("response"))
+    E --> M
+    L --> M
+</pre>
+      </div>
+      <div class="legend">
+        <span><i style="background:#D3F3E1"></i>Fresh hit — instant, no compute</span>
+        <span><i style="background:#FDEBC8"></i>Stale hit — instant, refresh happens in background</span>
+        <span><i style="background:#FBDADA"></i>Miss — visitor waits for a synchronous compute</span>
+      </div>
+
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified</span> Mechanism confirmed by reading <code>App\Services\Cache\CacheManager</code> directly: the hard-TTL data key is kept alive for <code>ttl + swr_stale_ttl</code>, while a separate <code>{key}:fresh</code> marker expires after <code>ttl</code> alone. A <code>{key}:revalidating</code> NX lock (max 300s) prevents duplicate background recomputes when many requests hit a stale entry at once. If Redis itself is unreachable, the manager <strong>fails open</strong> — it computes the value uncached rather than erroring, unless the compute step itself throws.</p></div>
+
+      <div class="callout assume"><span class="dot">⚠</span><p><span class="badge b-assume">Caveat</span> <code>job-search.result-ids</code> and <code>job-search.hydrator-item</code> (per-id batch lookups used by hydrators) are read via <code>rememberMany()</code>, a separate MGET/pipeline path that <strong>does not</strong> go through <code>resolveKey()</code> or SWR at all — they are plain fixed-TTL cache-aside, with no stale-while-revalidate and no warm-cache support.</p></div>
+    </section>
+
+    <section id="ttl-table">
+      <h2>Cache TTL Table</h2>
+      <p>Every row below is a real entry in <code>config/cache_policy.php</code>. "Auto-refresh" means the entry has a <code>ComputeResolver</code> wired up, so it is eligible for both SWR and the nightly warm-cache job. "Clear" reflects whether a staff member can clear that entry through the internal cache-tools endpoint.</p>
+
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Entry (endpointKey)</th><th>Scope</th><th>TTL</th><th>Auto-refresh (SWR)</th><th>Clearable?</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>job-search.core</code></td><td>job-search</td><td>24h</td><td class="yes">✓ Core resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>Main job-search listing page shell/filters</td></tr>
+          <tr><td><code>job-search.seo</code></td><td>job-search</td><td>24h</td><td class="yes">✓ Seo resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>SEO meta/content block; versioned by sync watermark</td></tr>
+          <tr><td><code>job-search.info</code></td><td>job-search</td><td>24h</td><td class="yes">✓ Info resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>Informational/content panel</td></tr>
+          <tr><td><code>job-search.hot-company</code></td><td>job-search-hot-company</td><td>24h</td><td class="yes">✓ HotCompany resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>"Hot companies" widget</td></tr>
+          <tr><td><code>job-search.results</code></td><td>job-search</td><td>12h</td><td class="yes">✓ Results resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>Search result list itself; versioned by sync watermark</td></tr>
+          <tr><td><code>job-search.auto-links</code></td><td>job-search</td><td>24h</td><td class="yes">✓ AutoLinks resolver</td><td class="no">✗ always off (hardcoded)</td><td>Auto-generated internal links block</td></tr>
+          <tr><td><code>job-search.featured-article</code></td><td>job-search</td><td>24h</td><td class="yes">✓ FeaturedArticle resolver</td><td class="gated">gated · <span class="pill">PURGE list</span></td><td>Featured article widget</td></tr>
+          <tr><td><code>job-search.result-ids</code></td><td>job-search-result-ids</td><td>12h</td><td class="no">✗ no resolver (MGET tier)</td><td class="no">✗ always off</td><td>Per-id batch of result identifiers</td></tr>
+          <tr><td><code>job-search.hydrator-item</code></td><td>job-search-hydrator-item</td><td>1h</td><td class="no">✗ no resolver (MGET tier)</td><td class="no">✗ always off</td><td>Per-item hydration data for a result row</td></tr>
+          <tr><td><code>job-search.suggest</code></td><td>job-search-suggest</td><td>90s</td><td class="no">✗ no resolver</td><td class="no">✗ always off</td><td>Search-box autosuggest, deliberately very short-lived</td></tr>
+          <tr><td><code>layout.navigation</code></td><td>public-layout</td><td>~7 days</td><td class="no">✗ no resolver</td><td class="yes">✓ unconditional, always on</td><td>Site header/nav; has a verification guard (see below)</td></tr>
+          <tr><td><code>layout.footer</code></td><td>public-layout</td><td>~7 days</td><td class="no">✗ no resolver</td><td class="yes">✓ unconditional, always on</td><td>Site footer; has a verification guard (see below)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout stale"><span class="dot">✕</span><p><span class="badge b-stale">Not cached at all</span> <code>layout.session</code>, <code>layout.shell</code>, and <code>layout.locales</code> have <strong>no entry</strong> in <code>cache_policy.php</code> on purpose — this is per-session/per-request data and must never be cached. <code>LayoutCoreService::resolveNewCore()</code> resolves these directly, uncached, every request.</p></div>
+
+      <h3>What gates "auto-refresh" and "clearable" on/off</h3>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Environment variable</th><th>Controls</th></tr></thead>
+        <tbody>
+          <tr><td><code>VIECOI_API_CACHE_SCOPES_REVALIDATE_QUEUE</code></td><td>Which scopes get stale-while-revalidate / background recompute enabled</td></tr>
+          <tr><td><code>VIECOI_API_CACHE_SCOPES_PURGE</code></td><td>Which scopes are allowed to be cleared via the cache-tools "clear all" action</td></tr>
+          <tr><td><code>VIECOI_API_CACHE_SCOPES_ALLOWED_PRECOMPUTE</code></td><td>Which scopes the nightly warm-cache job is allowed to force-refresh</td></tr>
+          <tr><td><code>VIECOI_API_CACHE_SCOPES_VERSIONING</code></td><td>Which scopes append a version suffix to their cache key (sync watermark)</td></tr>
+          <tr><td><code>VIECOI_API_CACHE_PRECOMPUTE_SCHEDULE_ENABLED</code></td><td>Master on/off switch for the 04:00 cron schedule itself</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout stale"><span class="dot">✕</span><p><span class="badge b-stale">Doc correction</span> The source migration doc claimed these env vars were "all set, fully enabled" on the local dev machine, with every compute-resolver scope active and <code>QUEUE_CONNECTION=sync</code> (so background jobs run inline). The current local <code>.env</code> actually has <strong>none</strong> of these five variables set (all default to off/empty) and <code>QUEUE_CONNECTION=database</code>. These toggles are environment-specific and were already out of date — treat the on/off state above as "configurable per environment," not a fixed fact.</p></div>
+    </section>
+
+    <section id="warm-cache">
+      <h2>Warm-Cache Computation Schedule</h2>
+      <p>A console command, <code>cache:precompute-urls</code>, proactively recomputes a curated list of popular job-search URLs so the <em>first</em> visitor of the day doesn't hit a cold cache. This is separate from, and happens before, normal traffic-driven SWR refreshes.</p>
+
+      <div class="card mermaid-card">
+<pre class="mermaid">
+flowchart TD
+    T["⏰ Scheduled trigger\n04:00 Asia/Ho_Chi_Minh\n(Laravel scheduler)"] --> G{"schedule_enabled?\n(VIECOI_API_CACHE_PRECOMPUTE_SCHEDULE_ENABLED)"}
+    G -- "no" --> X["skipped, no-op"]
+    G -- "yes" --> R["read storage/app/cache-warm-urls.txt\n(or --file= override)"]
+    R --> U["for each URL:\nresolve via PublicJobSearchUrlResolver\n→ build context + criteria"]
+    U --> S{"for each scope in\nVIECOI_API_CACHE_SCOPES_ALLOWED_PRECOMPUTE\nthat has a ComputeResolver"}
+    S --> D["delete existing cache key(s)\n(+ :fresh / :revalidating for SWR entries)"]
+    D --> C["call the scope's ComputeResolver\ndirectly, then CacheManager::remember()"]
+    C --> L["log per-URL result;\nfinal JSON summary\n{status, urls, refreshed, skipped, failed}"]
+    L --> LOG[("precompute_cache_urls\nlog channel — daily file,\n14-day retention")]
+</pre>
+      </div>
+
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>What's warmed</th><th>When / how often</th><th>What triggers it</th></tr></thead>
+        <tbody>
+          <tr><td>Every scope with a <code>ComputeResolver</code> that's in the precompute allow-list: <code>core</code>, <code>seo</code>, <code>info</code>, <code>hot-company</code>, <code>auto-links</code>, <code>featured-article</code>, <code>results</code></td><td>Once a day, 04:00 Vietnam time, gated by a config flag</td><td>Laravel's scheduler (<code>App\Console\Kernel</code>); manual run via <code>php artisan cache:precompute-urls [--file=]</code> also possible</td></tr>
+          <tr><td><code>job-search.result-ids</code> / <code>.hydrator-item</code></td><td>— not warmed —</td><td>No resolver exists for these yet; they bypass <code>CacheManager::remember()</code> entirely, so precompute has nothing to hook into</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified</span> The 04:00 Asia/Ho_Chi_Minh schedule was deliberately moved off Laravel's default midnight-UTC schedule (which lands at 07:00 local — already inside business hours) specifically to finish warming before real visitors arrive. Confirmed directly in <code>App\Console\Kernel</code>.</p></div>
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified / refines the source doc</span> The source migration doc implied only <code>core/.seo/.info/.results</code> share the warm-cache code path; the actual command has explicit handling for <code>.hot-company</code>, <code>.auto-links</code>, and <code>.featured-article</code> too, plus a <code>default</code> branch for the rest — in other words, every resolver-backed scope is wired into warming, not just four of them.</p></div>
+    </section>
+
+    <section id="invalidation">
+      <h2>Invalidation / Manual Clear</h2>
+      <p>Besides automatic TTL expiry and SWR refresh, staff can force a cache entry (or a whole category) to be dropped via one internal endpoint: <code>POST /api/v3/internal/cache-tools/clear</code>, guarded by a shared secret header.</p>
+
+      <div class="card mermaid-card">
+<pre class="mermaid">
+flowchart TD
+    A["POST /internal/cache-tools/clear\n(scope, url?) + secret header"] --> S{"secret header\nvalid?"}
+    S -- "no" --> R1["401 — request refused"]
+    S -- "yes" --> B{"url provided?"}
+    B -- "yes, exact URL" --> C["delegate to the scope's\nCacheClearService\n(e.g. JobSearchCacheClearService)\n→ clears that one cache key"]
+    B -- "no → clear ALL\nfor this scope" --> D["loop every cache_policy entry\nin this scope"]
+    D --> E{"entry's\nallow_clear_cache\n= true?"}
+    E -- "no" --> F["skip this entry entirely"]
+    E -- "yes" --> G["SCAN for matching keys via\nRedisUtil::collectByPattern(prefix + '*')"]
+    G --> H["delete each matched key\nONE AT A TIME\n(not a single bulk DEL)"]
+</pre>
+      </div>
+
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified</span> "Clear all" is <strong>not</strong> a blind scope-wide wipe — each entry is checked individually against <code>allow_clear_cache</code> first, which is why <code>layout.navigation</code> and <code>layout.footer</code> (sharing one <code>public-layout</code> scope) can be cleared independently without wiping each other. Matched keys are deleted one at a time rather than in one bulk <code>DEL</code> call — this split exists specifically to avoid a suspected bug where a multi-key delete could straddle Redis Cluster hash slots and silently fail on some keys.</p></div>
+    </section>
+
+    <section id="key-shape">
+      <h2>Cache Key Shape</h2>
+      <p>Every key written by <code>CacheManager</code> follows one fixed template so different environments, scopes, and endpoints can never collide:</p>
+      <div class="card">
+        <p style="font-family:var(--mono);font-size:13px;background:#0D1521;color:#E2EAF8;padding:14px 16px;border-radius:8px;overflow-x:auto">
+{ENV}__{SCOPE}__{ENDPOINT_KEY}[__{business_date}]__{resolved_key}[{version}]
+        </p>
+        <table>
+          <tbody>
+            <tr><td style="width:160px"><code>{ENV}</code></td><td>App environment (<code>local</code>/<code>staging</code>/<code>production</code>) — keeps environments from colliding if they ever share one Redis instance</td></tr>
+            <tr><td><code>{SCOPE}</code> / <code>{ENDPOINT_KEY}</code></td><td>Upper-cased scope and the raw endpoint key, each sanitized (non-alphanumeric runs collapsed to <code>_</code>) so a dash or dot in a name can't be mistaken for the <code>__</code> separator</td></tr>
+            <tr><td><code>{business_date}</code></td><td>Only appended if an entry sets <code>use_date_prefix: true</code>. <span class="badge b-verified">Verified</span> — no entry currently does this.</td></tr>
+            <tr><td><code>{version}</code></td><td>Appended when the entry has a version strategy (e.g. <code>job-search.seo/.results/.result-ids/.hydrator-item</code> use a sync-watermark version)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout assume"><span class="dot">⚠</span><p><span class="badge b-assume">Caveat, verified in code</span> If an entry ever turns on <code>use_date_prefix</code>, the SCAN prefix used for "clear all" bakes in <em>today's</em> date — a clear would then only reach today's dated keys, not older days left over from TTL. Not an active bug today since no entry uses date prefixing, but worth knowing before enabling it.</p></div>
+    </section>
+
+    <section id="layout-scope">
+      <h2>Layout Caching (<code>public-layout</code> scope)</h2>
+      <p>Site-wide layout pieces are split by how dynamic they are:</p>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Piece</th><th>Cached?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Navigation, Footer</td><td class="yes">✓ cached, ~7 days</td><td>Real <code>CacheManager</code> entries under shared <code>public-layout</code> scope; each has a <strong>verification strategy</strong> that detects and recomputes on a known truncated-payload bug — a guard, not a fix. <span class="badge b-open">Root cause still unknown</span></td></tr>
+          <tr><td>Session, Shell, Locales</td><td class="no">✗ never cached</td><td>Per-session/per-request data; resolved directly, uncached, on every request, by design</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>A related detail: the site's menu/category data has its own separate, long-lived (6-month) cache inside <code>MenuCategoryService</code>. When the navigation flow builds its response, it deliberately <strong>skips</strong> that inner menu cache (<code>handleMenuV2($hostId, useCache: false)</code>) because the outer <code>layout.navigation</code> entry already wraps the whole response — avoiding caching the same data twice at two different layers. Other callers of the menu service still use its cache normally.</p>
+    </section>
+
+    <section id="frontend">
+      <h2>Cache Tools UI (Admin Frontend)</h2>
+      <p>An internal admin page in <code>viecoi_nextjs</code> lets staff trigger the clear endpoint above without needing API access directly.</p>
+      <ul style="margin-left:18px;margin-bottom:12px">
+        <li style="margin-bottom:6px"><strong>Per-URL scopes</strong> (<code>job-search</code>, <code>job-search-hot-company</code>) show a URL input and a "Clear" / "Clear all" choice.</li>
+        <li style="margin-bottom:6px"><strong>Global scopes</strong> (currently just <code>public-layout</code>) show a language + host picker instead, with a single "Clear" button — there's only one way to clear a global scope today.</li>
+      </ul>
+      <div class="callout assume"><span class="dot">⚠</span><p><span class="badge b-assume">UI placeholder, verified in code</span> The language/host picker shown for global scopes is <strong>not wired to anything yet</strong> — whatever is selected is never sent to the backend. Clicking "Clear" always clears the entire <code>public-layout</code> scope regardless of the selection. This is an intentional placeholder for a possible future per-language/per-host clear, explicitly deferred.</p></div>
+    </section>
+
+    <section id="open-items">
+      <h2>Open Items &amp; Things Not Yet Verifiable</h2>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Backend changes described as "uncommitted" in the source migration doc (<code>{ENV}</code> prefix, key sanitization, <code>resolveKeyPrefix()</code>, <code>RedisUtil::collectByPattern()</code>, the precompute log channel)</td><td><span class="badge b-verified">Now committed</span> — all landed in a single commit on <code>feature/VIO-4146-main</code> as of this check; the working tree is clean</td></tr>
+          <tr><td><code>job-search.result-ids</code> / <code>.hydrator-item</code> compute resolvers, precompute, and clear wiring</td><td><span class="badge b-open">Not built</span> — this tier bypasses <code>CacheManager::remember()</code> entirely and needs its own design, not a drop-in resolver</td></tr>
+          <tr><td><code>layout.navigation</code>/<code>.footer</code> truncated-payload bug</td><td><span class="badge b-open">Open</span> — only a detect-and-recompute guard exists; root cause unknown</td></tr>
+          <tr><td>Language/host-scoped clearing for global scopes</td><td><span class="badge b-open">Deferred</span> — UI exists, no backend support, not requested yet</td></tr>
+          <tr><td>Replacement for the removed <code>HomepageCacheClearController</code></td><td><span class="badge b-open">Not started</span> — tracked as a separate ticket</td></tr>
+          <tr><td><code>JobSearchResultsService::resolve()</code> / <code>resolveCacheKey()</code></td><td><span class="badge b-assume">Unconfirmed</span> — appear to have zero callers (orphaned), but not yet confirmed safe to delete given test surface</td></tr>
+          <tr><td>Local <code>.env</code> enablement of SWR/precompute/purge/versioning</td><td><span class="badge b-stale">Environment-dependent</span> — do not treat any single machine's <code>.env</code> as representative; these are per-environment toggles</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <footer>
+      Sources: <code>docs/operations/VIO-4146-job-search-cache-manager-migration.md</code> (branch <code>feature/VIO-4146-main</code>), cross-checked on 2026-10-24 against <code>app/Services/Cache/CacheManager.php</code>, <code>config/cache_policy.php</code>, <code>app/Services/Cache/ComputeResolvers/JobSearch/*</code>, <code>app/Console/Commands/PrecomputeCacheUrls.php</code>, <code>app/Console/Kernel.php</code>, <code>app/Http/Controllers/.../CacheClearController.php</code>, <code>RedisUtil</code>, layout services, and the <code>viecoi_nextjs</code> cache-tools UI. Badges mark verification status per claim — green = confirmed in code, amber = caveat/assumption/placeholder, red = contradicted by the current code or environment, purple = known open work.
+    </footer>
+  </main>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:true,theme:"base",themeVariables:{
+  primaryColor:"#EBF0FB", primaryBorderColor:"#B3BFD1", primaryTextColor:"#1A2638",
+  lineColor:"#5A6E87", fontFamily:"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif",
+  fontSize:"13px", tertiaryColor:"#FFFBEB"
+}});
+
+document.querySelectorAll('.nav a').forEach(a=>{
+  a.addEventListener('click',()=>{
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -14,6 +14,7 @@ A static snapshot of Claude artifacts, exported as plain HTML files.
 | `viecoi-api-split-en.html` | Viecoi API Split (English) |
 | `viecoi-api-split-ja.html` | Viecoi API 分割 (Japanese) |
 | `viecoi-api-split-vi.html` | Tách Viecoi API (Vietnamese) |
+| `viecoi-cache-framework.html` | Viecoi Cache Framework — current state of `CacheManager`, TTLs, SWR, warm cache, invalidation (VIO-4146) |
 
 ## Note
 
