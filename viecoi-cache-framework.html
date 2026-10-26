@@ -103,7 +103,8 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--border);font-
     <a href="#overview">Overview</a>
     <a href="#lifecycle">Request Lifecycle</a>
     <div class="nav-section-label">Reference</div>
-    <a href="#ttl-table">Cache TTL Table</a>
+    <a href="#ttl-table">Cache TTL Table (Backend)</a>
+    <a href="#frontend-ttl-table">Cache TTL Table (Frontend)</a>
     <a href="#warm-cache">Warm Cache Schedule</a>
     <a href="#invalidation">Invalidation / Clear</a>
     <div class="nav-section-label">Detail</div>
@@ -170,8 +171,8 @@ flowchart TD
     </section>
 
     <section id="ttl-table">
-      <h2>Cache TTL Table</h2>
-      <p>Every row below is a real entry in <code>config/cache_policy.php</code>. "Auto-refresh" means the entry has a <code>ComputeResolver</code> wired up, so it is eligible for both SWR and the nightly warm-cache job. "Clear" reflects whether a staff member can clear that entry through the internal cache-tools endpoint.</p>
+      <h2>Cache TTL Table (Backend)</h2>
+      <p>Every row below is a real entry in <code>config/cache_policy.php</code> (<code>viecoi-v3-api</code>, the Laravel API). "Auto-refresh" means the entry has a <code>ComputeResolver</code> wired up, so it is eligible for both SWR and the nightly warm-cache job. "Clear" reflects whether a staff member can clear that entry through the internal cache-tools endpoint.</p>
 
       <div class="tbl-wrap">
       <table>
@@ -209,6 +210,60 @@ flowchart TD
       </table>
       </div>
       <div class="callout stale"><span class="dot">✕</span><p><span class="badge b-stale">Doc correction</span> The source migration doc claimed these env vars were "all set, fully enabled" on the local dev machine, with every compute-resolver scope active and <code>QUEUE_CONNECTION=sync</code> (so background jobs run inline). The current local <code>.env</code> actually has <strong>none</strong> of these five variables set (all default to off/empty) and <code>QUEUE_CONNECTION=database</code>. These toggles are environment-specific and were already out of date — treat the on/off state above as "configurable per environment," not a fixed fact.</p></div>
+    </section>
+
+    <section id="frontend-ttl-table">
+      <h2>Cache TTL Table (Frontend)</h2>
+      <p>This is a <strong>second, independent</strong> cache layer: <code>src/config/cache-policy.json</code> in <code>viecoi_nextjs</code> drives Next.js's own Data Cache (<code>fetch()</code> <code>revalidate</code>/tags via <code>CachePolicyHandler</code>), sitting in front of the backend entries above. An endpoint here is keyed by its <strong>Next.js API route path</strong>, not a backend <code>endpointKey</code> — the two files are related by shared <code>scope</code> names (e.g. frontend <code>job-search</code> ≈ backend's <code>job-search.*</code> entries) but are configured, and TTL'd, completely separately.</p>
+
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Route (entry key)</th><th>Scope</th><th>TTL</th><th>Enabled?</th><th>Global scope?</th></tr></thead>
+        <tbody>
+          <tr><td><code>api/v3/static/page</code></td><td>static-pages</td><td>24h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/static/faq</code></td><td>static-pages</td><td>24h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/static/stats</code></td><td>static-pages</td><td>24h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/static/notice</code></td><td>notice</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/homepage/full</code></td><td>homepage</td><td>1h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/quick-apply/bootstrap</code></td><td>quick-apply</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/jobseeker-cv/edit-bootstrap</code></td><td>jobseeker-cv</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/layout/core</code></td><td>public-layout</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="yes">✓ global</td></tr>
+          <tr><td><code>api/v3/company-detail/full</code></td><td>company-detail</td><td>60s</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/company-search/seo-critical</code></td><td>company-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/company-search/seo</code></td><td>company-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/company-search/core</code></td><td>company-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/company-search/results</code></td><td>company-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/hot-company</code></td><td>job-search-hot-company</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/info</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/results</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/core</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/auto-links</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/seo</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/seo-critical</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/seo-content</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/related-article</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-search/featured-article</code></td><td>job-search</td><td>4h</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/latest-news</code></td><td>job-search-latest-news</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-detail/seo</code></td><td>job-detail</td><td>60s</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-detail/core</code></td><td>job-detail</td><td>60s</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-detail/related</code></td><td>job-detail</td><td>60s</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-detail/apply-state</code></td><td>job-detail</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/job-detail/status</code></td><td>job-status-notice</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/candidate-search/seo</code></td><td>candidate-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/candidate-search/info</code></td><td>candidate-search</td><td>5min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/candidate-search/results</code></td><td>candidate-search</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/list</code></td><td>article</td><td>10min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/category</code></td><td>article</td><td>10min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/subcategory</code></td><td>article</td><td>10min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/tag</code></td><td>article</td><td>10min</td><td class="yes">✓</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/search</code></td><td>article</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+          <tr><td><code>api/v3/article/detail</code></td><td>article</td><td>0 (n/a)</td><td class="no">✗ disabled</td><td class="no">—</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout verified"><span class="dot">✓</span><p><span class="badge b-verified">Verified</span> <code>src/config/cache-policy.json</code> is split into two top-level keys: <code>entry</code> (every row above) and <code>global: { scopes: [...] }</code>. <code>api/v3/layout/core</code>'s scope, <code>public-layout</code>, is the only one currently listed as global — it's not tied to any one URL, so the Cache Tools UI renders a lang/host picker for it instead of a "clear by URL" input (see <a href="#frontend">Cache Tools UI</a>).</p></div>
+      <div class="callout assume"><span class="dot">⚠</span><p><span class="badge b-assume">Caveat</span> <code>api/v3/layout/core</code> has <code>enable: false</code> here on the frontend — Next.js never caches/tags this route's response at all, independent of whatever TTL the backend's <code>layout.navigation</code>/<code>.footer</code> entries use (see the <a href="#ttl-table">backend table</a>). Don't read "disabled" on one side as implying anything about the other — frontend and backend caching for the same feature are configured, and can be toggled, completely independently.</p></div>
     </section>
 
     <section id="warm-cache">
