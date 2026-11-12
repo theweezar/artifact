@@ -6,15 +6,11 @@ A static snapshot of Claude artifacts, exported as plain HTML files.
 
 | File | Description |
 |---|---|
-| `index.html` | Landing page linking all artifacts below |
-| `bao-cao-loi-viecoi.html` | Báo cáo lỗi Viecoi (Vietnamese bug report) |
-| `viecoi-fukugu-hokoku.html` | Viecoi 不具合報告 (Japanese bug report) |
-| `quy-tac-bai-viet-vio-4028.html` | Quy tắc bài viết VIO-4028 |
-| `cwv-lcp-investigation.html` | CWV LCP Investigation — viecoi.vn Sprint 71 |
-| `viecoi-api-split-en.html` | Viecoi API Split (English) |
-| `viecoi-api-split-ja.html` | Viecoi API 分割 (Japanese) |
-| `viecoi-api-split-vi.html` | Tách Viecoi API (Vietnamese) |
-| `viecoi-cache-framework.html` | Viecoi Cache Framework — current state of `CacheManager`, TTLs, SWR, warm cache, invalidation (VIO-4146) |
+| `index.html` | Landing page linking all article folders below |
+| `<article>/index.html` | Per-article page linking its `en` / `ja` / `vi` versions |
+| `<article>/<article>[-lang].html` + `.css` | The article and its extracted stylesheet |
+
+Articles: `bao-cao-loi-viecoi`, `viecoi-fukugu-hokoku`, `quy-tac-bai-viet-vio-4028`, `cwv-lcp-investigation`, `viecoi-api-split` (en, ja, vi), `viecoi-cache-framework`.
 
 ## Note
 
