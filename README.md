@@ -10,7 +10,7 @@ A static snapshot of Claude artifacts, exported as plain HTML files.
 | `<article>/index.html` | Per-article page linking its `en` / `ja` / `vi` versions |
 | `<article>/<article>[-lang].html` + `.css` | The article and its extracted stylesheet |
 
-Articles: `bao-cao-loi-viecoi`, `viecoi-fukugu-hokoku`, `quy-tac-bai-viet-vio-4028`, `cwv-lcp-investigation`, `viecoi-api-split` (en, ja, vi), `viecoi-cache-framework`.
+Articles: `bao-cao-loi-viecoi` (vi, ja), `quy-tac-bai-viet-vio-4028`, `cwv-lcp-investigation`, `viecoi-api-split` (en, ja, vi), `viecoi-cache-framework`.
 
 ## Note
 
