@@ -8,9 +8,10 @@ A static snapshot of Claude artifacts, exported as plain HTML files.
 |---|---|
 | `index.html` | Landing page linking all article folders below |
 | `<article>/index.html` | Per-article page linking its `en` / `ja` / `vi` versions |
-| `<article>/<article>[-lang].html` + `.css` | The article and its extracted stylesheet |
+| `main.css` | Shared design system (tokens, nav + main layout, components) — link as `../main.css` from every article page |
+| `<article>/<article>[-lang].html` | The article itself; no page-local CSS |
 
-Articles: `bao-cao-loi-viecoi` (vi, ja), `quy-tac-bai-viet-vio-4028`, `cwv-lcp-investigation`, `viecoi-api-split` (en, ja, vi), `viecoi-cache-framework`.
+Articles: `quy-tac-bai-viet-vio-4028`, `viecoi-cache-framework`.
 
 ## Note
 
